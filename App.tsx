@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import VideoTable from './components/VideoTable';
@@ -37,6 +37,9 @@ const App: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
 
+  // UI State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!youtubeKey.trim()) {
@@ -48,10 +51,6 @@ const App: React.FC = () => {
       return;
     }
 
-    // Optional: You might want to force validation before search, 
-    // but typically we let the verify button in Sidebar handle strict validation visual cues.
-    // However, if the user hasn't verified, we might encounter errors. 
-    
     setIsLoading(true);
     setError(null);
     setResult(null);
@@ -68,8 +67,7 @@ const App: React.FC = () => {
         metrics
       });
 
-      // Gemini AI Analysis (Strictly use user input key AND require validation)
-      // Only trigger if key is provided and marked as valid
+      // Gemini AI Analysis
       if (geminiKey && isGeminiValid) {
         setIsAiLoading(true);
         analyzeWithGemini(geminiKey, keyword, metrics)
@@ -85,9 +83,8 @@ const App: React.FC = () => {
     }
   };
 
-  // Main App
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar 
         youtubeKey={youtubeKey} 
         setYoutubeKey={setYoutubeKey} 
@@ -95,50 +92,65 @@ const App: React.FC = () => {
         geminiKey={geminiKey}
         setGeminiKey={setGeminiKey}
         setIsGeminiValid={setIsGeminiValid}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
       />
       
-      <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-        <div className="w-full mx-auto">
+      <main className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+        {/* Mobile Header */}
+        <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm/50 backdrop-blur-md bg-white/90">
+           <div className="flex items-center gap-2">
+             <button 
+               onClick={() => setIsMobileMenuOpen(true)}
+               className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg active:scale-95 transition-transform"
+             >
+               <Menu className="w-6 h-6" />
+             </button>
+             <h1 className="font-bold text-lg text-slate-800">NewLifeBegin</h1>
+           </div>
+        </header>
+
+        <div className="p-4 md:p-8 max-w-[1920px] w-full mx-auto">
           
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">
+          <div className="mb-8 mt-2 md:mt-0">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 tracking-tight">
               유튜브 키워드 분석
             </h2>
-            <p className="text-slate-500">
-              상위 노출 영상을 분석하여 최적의 콘텐츠 전략을 수립하세요.
+            <p className="text-slate-500 text-sm md:text-base">
+              데이터 기반 분석과 AI 전략으로 채널 성장을 가속화하세요.
             </p>
           </div>
 
           <form onSubmit={handleSearch} className="mb-6 relative">
             <SearchFiltersComponent filters={filters} setFilters={setFilters} />
 
-             <div className="flex shadow-sm rounded-lg overflow-hidden mb-4">
+             <div className="flex shadow-lg shadow-slate-200/50 rounded-xl overflow-hidden mb-4 border border-slate-200 bg-white items-center">
               <input
                 type="text"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="분석할 키워드를 입력하세요 (예: 스마트폰 추천, 브이로그)"
-                className="flex-1 px-6 py-4 text-lg border-2 border-r-0 border-slate-200 focus:outline-none focus:border-red-500 focus:ring-0 rounded-l-lg transition-colors placeholder:text-slate-300 text-slate-700"
+                placeholder="검색어 입력 (예: 재테크, 브이로그)"
+                className="flex-1 px-4 md:px-6 py-4 text-lg md:text-2xl font-bold focus:outline-none placeholder:text-slate-300 text-slate-800 min-w-0 tracking-tight"
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 font-bold text-lg transition-colors flex items-center space-x-2 rounded-r-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                className="bg-red-600 hover:bg-red-700 text-white px-6 md:px-8 py-4 font-bold text-base md:text-lg transition-colors flex items-center space-x-2 shrink-0 disabled:opacity-70 disabled:cursor-not-allowed h-full"
               >
-                {isLoading ? <Loader2 className="animate-spin" /> : <Search />}
-                <span className="hidden md:inline">분석하기</span>
+                {isLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Search className="w-6 h-6" />}
+                <span className="hidden md:inline">분석</span>
               </button>
             </div>
             
             {error && (
-              <p className="text-red-500 text-sm font-medium animate-pulse mt-2">
+              <p className="text-red-500 text-sm font-medium animate-pulse mt-2 px-1">
                 ⚠️ {error}
               </p>
             )}
           </form>
 
           {result && (
-            <div className="animate-fade-in-up space-y-6">
+            <div className="animate-fade-in-up space-y-6 md:space-y-8 pb-10">
               <Dashboard 
                 metrics={result.metrics} 
                 videos={result.videos} 
@@ -147,7 +159,7 @@ const App: React.FC = () => {
               
               {/* Only Render AI Components if Gemini Key is Valid */}
               {isGeminiValid ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                    <AIStrategy 
                     strategy={aiAnalysis} 
                     isLoading={isAiLoading} 
@@ -158,8 +170,8 @@ const App: React.FC = () => {
                   />
                 </div>
               ) : (
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 text-center text-blue-700 text-sm mb-6">
-                  🤖 Gemini API Key를 입력하고 <strong>[확인]</strong>을 완료하면, AI 전략 분석과 대본 생성 기능을 사용할 수 있습니다.
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6 text-center text-blue-800 text-sm md:text-base mb-6 shadow-sm">
+                  🤖 Gemini API Key를 입력하고 <strong>[확인]</strong>을 완료하면, <br className="md:hidden"/> AI 전략 분석과 대본 생성 기능을 사용할 수 있습니다.
                 </div>
               )}
 
@@ -174,9 +186,12 @@ const App: React.FC = () => {
           )}
           
           {!result && !isLoading && (
-            <div className="text-center py-20 text-slate-300">
-              <Search className="w-16 h-16 mx-auto mb-4 opacity-20" />
-              <p className="text-lg">키워드를 입력하고 분석을 시작하세요.</p>
+            <div className="text-center py-20 md:py-32 text-slate-300 flex flex-col items-center">
+              <div className="bg-white p-6 rounded-full shadow-sm mb-4 border border-slate-100">
+                  <Search className="w-12 h-12 md:w-16 md:h-16 text-slate-200" />
+              </div>
+              <p className="text-lg md:text-xl font-medium text-slate-400">키워드를 입력하고 분석을 시작하세요.</p>
+              <p className="text-sm text-slate-300 mt-2">유튜브 트렌드를 한눈에 파악할 수 있습니다.</p>
             </div>
           )}
         </div>

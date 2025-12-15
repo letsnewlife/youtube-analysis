@@ -46,45 +46,45 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Overview (Counts) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-blue-300 transition-colors">
-           <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-500 flex items-center gap-1">
-                분석 개요 (Overview)
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-blue-300 transition-colors h-[220px]">
+           <div className="flex items-center justify-between">
+              <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-1">
+                분석 개요
               </h3>
-              <MonitorPlay className="w-5 h-5 text-slate-400" />
+              <MonitorPlay className="w-6 h-6 text-slate-400" />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 mt-2">
                <div className="flex justify-between items-center">
-                  <span className="text-slate-600 text-sm">분석 영상 수</span>
-                  <span className="font-bold text-slate-800 text-lg">{metrics.analyzedVideoCount}개</span>
+                  <span className="text-slate-600 text-base font-medium">분석 영상 수</span>
+                  <span className="font-bold text-slate-900 text-lg">{metrics.analyzedVideoCount}개</span>
                </div>
                <div className="flex justify-between items-center">
-                  <span className="text-slate-600 text-sm">발견 채널 수</span>
-                  <span className="font-bold text-slate-800 text-lg">{metrics.uniqueChannelCount}개</span>
+                  <span className="text-slate-600 text-base font-medium">발견 채널 수</span>
+                  <span className="font-bold text-slate-900 text-lg">{metrics.uniqueChannelCount}개</span>
                </div>
-               <div className="border-t border-slate-100 my-2 pt-2 flex justify-between items-center">
-                  <span className="text-slate-500 text-xs">평균 구독자</span>
-                  <span className="font-bold text-slate-600">{formatNumber(metrics.avgSubscribers)}명</span>
+               <div className="border-t border-slate-100 pt-3 mt-1 flex justify-between items-center">
+                  <span className="text-slate-500 text-base font-bold">평균 구독자</span>
+                  <span className="font-black text-slate-800 text-2xl">{formatNumber(metrics.avgSubscribers)}명</span>
                </div>
             </div>
         </div>
 
         {/* Card 2: Market Size (Avg Views) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between relative group hover:border-purple-300 transition-colors cursor-help">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between relative group hover:border-purple-300 transition-colors cursor-help h-[220px]">
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-500 flex items-center gap-1">
-                평균 조회수 (시장 규모) <Info className="w-3.5 h-3.5 text-slate-300" />
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-1">
+                시장 규모 <Info className="w-4 h-4 text-slate-300" />
               </h3>
-              <Activity className="w-5 h-5 text-slate-400" />
+              <Activity className="w-6 h-6 text-slate-400" />
             </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-black text-slate-800 tracking-tight">{formatNumber(metrics.avgViews)}</span>
-              <span className="text-xs text-slate-400 font-medium">Avg Views</span>
+            <div className="flex items-baseline space-x-2 mt-1">
+              <span className="text-3xl font-black text-slate-900 tracking-tight">{formatNumber(metrics.avgViews)}</span>
+              <span className="text-sm text-slate-400 font-bold">Avg Views</span>
             </div>
           </div>
-          <div className="mt-4">
-            <span className={`px-4 py-3 rounded-lg text-xl font-black border ${getVolumeColor(metrics.marketSizeLevel)} block text-center shadow-sm`}>
+          <div className="mt-2">
+            <span className={`px-4 py-3 rounded-lg text-2xl font-black border ${getVolumeColor(metrics.marketSizeLevel)} block text-center shadow-sm`}>
               {metrics.marketSizeLevel}
             </span>
           </div>
@@ -107,23 +107,23 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
         </div>
 
         {/* Card 3: Difficulty Score (Enhanced) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between relative group hover:border-red-300 transition-colors cursor-help">
-          <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-500 flex items-center gap-1">
-                진입 난이도 (Difficulty) <Info className="w-3.5 h-3.5 text-slate-300" />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between relative group hover:border-red-300 transition-colors cursor-help h-[220px]">
+          <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-1">
+                진입 난이도 <Info className="w-4 h-4 text-slate-300" />
               </h3>
-              <BarChart2 className="w-5 h-5 text-slate-400" />
+              <BarChart2 className="w-6 h-6 text-slate-400" />
             </div>
-            <div>
+            <div className="mt-1">
                <div className="flex items-center justify-between mb-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getDifficultyLabelColor(metrics.difficultyLevel)}`}>
+                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${getDifficultyLabelColor(metrics.difficultyLevel)}`}>
                     {metrics.difficultyLevel}
                   </span>
                   <div className="flex items-baseline gap-1">
-                    <span className={`text-3xl font-black ${getDifficultyColor(metrics.difficultyScore)}`}>
+                    <span className={`text-4xl font-black ${getDifficultyColor(metrics.difficultyScore)}`}>
                         {metrics.difficultyScore}
                     </span>
-                    <span className="text-xs text-slate-400 font-bold">/100</span>
+                    <span className="text-sm text-slate-400 font-bold">/100</span>
                   </div>
                </div>
               
@@ -134,7 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
                     style={{ width: `${metrics.difficultyScore}%` }}
                   ></div>
               </div>
-              <p className="text-[10px] text-slate-400 mt-2 text-right">
+              <p className="text-[11px] text-slate-400 mt-3 text-right font-medium">
                 구독자 수와 바이럴 지수를 종합한 점수입니다.
               </p>
             </div>
@@ -154,47 +154,54 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
         </div>
 
         {/* Card 4: Opportunity (VPH & Ratios) */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-green-300 transition-colors">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-slate-500 flex items-center gap-1">
-               기회 요인 (Opportunity)
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-green-300 transition-colors h-[220px]">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-1">
+               기회 요인
             </h3>
-            <Zap className="w-5 h-5 text-slate-400" />
+            <Zap className="w-6 h-6 text-slate-400" />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2 mt-1">
+            
+            {/* 1. VPH */}
             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 text-sm flex items-center gap-1">
+                <span className="text-slate-600 text-sm font-bold flex items-center gap-1">
+                  시간당 조회수
+                </span>
+                <span className="font-black text-slate-900 text-lg">{formatNumber(metrics.avgViewsPerHour)}</span>
+            </div>
+
+            <div className="w-full border-t border-slate-100"></div>
+
+            {/* 2. Engagement Rate */}
+            <div className="flex justify-between items-center group relative cursor-help">
+                <span className="text-slate-600 text-sm font-bold flex items-center gap-1">
                   평균 참여율
                 </span>
-                <span className="font-bold text-slate-800 text-base">{metrics.engagementRate.toFixed(2)}%</span>
+                <span className="font-bold text-purple-600 text-lg">{metrics.engagementRate.toFixed(2)}%</span>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 text-white text-xs p-2 rounded w-48 z-10 text-center shadow-lg">
                   참여율 : (좋아요+댓글)/조회수
                 </div>
             </div>
 
-            <div className="w-full border-t border-slate-50"></div>
-
-            <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 text-xs flex items-center gap-1">
-                  시간당 조회수 (VPH)
+            {/* 3. Like / View Ratio */}
+             <div className="flex justify-between items-center group relative cursor-help">
+                <span className="text-slate-600 text-sm font-medium flex items-center gap-1">
+                  좋아요 / 조회수 비율
                 </span>
-                <span className="font-bold text-slate-800 text-base">{formatNumber(metrics.avgViewsPerHour)}</span>
+                <span className="font-bold text-blue-600 text-lg">{metrics.avgLikeToViewRatio.toFixed(1)}%</span>
             </div>
-            
+
+            {/* 4. View / Sub Ratio */}
             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 text-xs flex items-center gap-1">
+                <span className="text-slate-600 text-sm font-medium flex items-center gap-1">
                   조회수 / 구독자 비율
                 </span>
-                <span className={`font-bold text-base ${(metrics.avgViews / metrics.avgSubscribers) > 1 ? 'text-green-600' : 'text-slate-600'}`}>
+                <span className={`font-bold text-lg ${(metrics.avgViews / metrics.avgSubscribers) > 1 ? 'text-green-600' : 'text-slate-600'}`}>
                   {metrics.avgSubscribers > 0 ? (metrics.avgViews / metrics.avgSubscribers * 100).toFixed(0) : 0}%
                 </span>
             </div>
-             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 text-xs flex items-center gap-1">
-                  좋아요 / 조회수 비율
-                </span>
-                <span className="font-bold text-blue-600 text-base">{metrics.avgLikeToViewRatio.toFixed(1)}%</span>
-            </div>
+            
           </div>
         </div>
       </div>
