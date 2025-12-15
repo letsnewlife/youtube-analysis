@@ -1,0 +1,5 @@
+{
+  "name": "유투브 키워드 분석기",
+  "description": "A YouTube keyword analysis tool that provides search volume estimates, competition metrics, and AI-powered content strategy advice using the Gemini API.",
+  "requestFramePermissions": []
+}
