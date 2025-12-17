@@ -195,7 +195,6 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
     <div id="detail-table" className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col mb-8 min-h-[600px] md:h-[900px]">
       
       <div className="p-3 border-b border-slate-200 flex flex-col lg:flex-row items-center gap-3 bg-white rounded-t-xl shrink-0 z-10">
-        
         <div className="flex items-center gap-2 shrink-0">
             <button onClick={downloadCSV} className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-[12px] font-black transition-all active:scale-95 flex items-center gap-1.5 shadow-sm">
                 <Download className="w-3.5 h-3.5" /> CSV 다운로드
@@ -207,8 +206,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
         </div>
         
         <div className="flex flex-1 items-center gap-2 w-full lg:max-w-none justify-end">
-           
-           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex-1 max-w-[220px]">
+           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex-1 max-w-[200px]">
               <span className="text-[12px] font-black text-slate-500 shrink-0">필터 :</span>
               <div className="flex items-center flex-1 min-w-0">
                 <Search className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
@@ -216,7 +214,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                   type="text"
                   value={filterText}
                   onChange={(e) => { setFilterText(e.target.value); setCurrentPage(1); }}
-                  placeholder="제목 또는 채널명 검색"
+                  placeholder="제목, 채널명 검색"
                   className="bg-transparent text-[12px] font-bold text-slate-700 focus:outline-none w-full"
                 />
               </div>
@@ -262,7 +260,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                 <select 
                   value={itemsPerPage} 
                   onChange={(e) => { setItemsPerPage(parseInt(e.target.value)); setCurrentPage(1); }}
-                  className="bg-transparent text-[13px] font-black text-slate-700 focus:outline-none cursor-pointer px-1"
+                  className="bg-transparent text-[12px] font-black text-slate-700 focus:outline-none cursor-pointer px-1"
                 >
                   <option value={10}>10개씩</option>
                   <option value={20}>20개씩</option>
@@ -304,16 +302,16 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                              <span className="text-black font-black">{formatDate(video.snippet.publishedAt)}</span>
                           </div>
                           <div className="grid grid-cols-4 gap-1 text-center py-2 border-y border-slate-100">
-                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">Views</div><div className="text-[12px] font-black text-slate-900">{formatCount(video.statistics.viewCount)}</div></div>
-                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">Rate</div><div className="text-[12px] font-black text-purple-600">{engagement}%</div></div>
-                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">VPH</div><div className="text-[12px] font-black text-blue-600">{formatCount(video.viewsPerHour)}</div></div>
-                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">V/S</div><div className="text-[12px] font-black text-green-600">{video.viewToSubRatio.toFixed(0)}%</div></div>
+                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">Views</div><div className="text-[14px] font-black text-slate-900">{formatCount(video.statistics.viewCount)}</div></div>
+                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">Rate</div><div className="text-[14px] font-black text-purple-600">{engagement}%</div></div>
+                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">VPH</div><div className="text-[14px] font-black text-blue-600">{formatCount(video.viewsPerHour)}</div></div>
+                             <div><div className="text-[12px] text-slate-400 font-bold uppercase">V/S</div><div className="text-[14px] font-black text-green-600">{video.viewToSubRatio.toFixed(0)}%</div></div>
                           </div>
                           <div className="flex gap-2 pt-1">
                              <a href={`https://youtu.be/${video.id}`} target="_blank" className="flex-1 bg-slate-100 text-slate-700 py-2 rounded text-[14px] font-black flex items-center justify-center gap-1">
                                 <ExternalLink className="w-3.5 h-3.5" /> 원본
                              </a>
-                             <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id} className="flex-1 bg-purple-600 text-white py-2 rounded text-[14px] font-black flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50">
+                             <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id || !isGeminiValid} className="flex-1 bg-purple-600 text-white py-2 rounded text-[14px] font-black flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50">
                                 {generatingId === video.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} AI분석
                              </button>
                           </div>
@@ -330,7 +328,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                     <col className="w-[125px]" /><col className="w-[150px]" /><col className="w-[20%]" />
                     <col className="w-[105px]" />
                 </colgroup>
-                <thead className="bg-slate-50 text-slate-800 font-black text-lg border-b border-slate-200 sticky top-0 z-20">
+                <thead className="bg-slate-50 text-slate-800 font-black text-base border-b border-slate-200 sticky top-0 z-20">
                   <tr>
                     <th className="px-3 py-4">썸네일</th>
                     <th className="px-3 py-4 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => toggleSort('date')}>제목 및 게시일 {sortField === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}</th>
@@ -362,21 +360,33 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       <td className="px-3 py-3 align-top">
                         <div className="flex flex-col justify-between h-[112px]">
                             <a href={`https://youtu.be/${video.id}`} target="_blank" className="font-black text-slate-900 hover:text-blue-600 text-[16px] leading-snug line-clamp-4">{video.snippet.title}</a>
-                            <div className="flex items-center text-sm font-black text-black mt-1"><Calendar className="w-4 h-4 mr-1" />{formatDate(video.snippet.publishedAt)}</div>
+                            <div className="flex items-center text-sm font-black text-black mt-1"><Calendar className="w-7 h-7 mr-1" />{formatDate(video.snippet.publishedAt)}</div>
                         </div>
                       </td>
-                      <td className="px-3 py-3 align-top text-[12px] relative group/desc">
-                          <div className="flex flex-wrap gap-1 mb-2">{(video.snippet.tags || []).slice(0,3).map((t,i) => <span key={i} className="px-1 bg-slate-100 rounded">#{t}</span>)}</div>
-                          <p className="line-clamp-4 text-slate-400 font-medium cursor-help">{video.snippet.description}</p>
-                          {/* Hover Tooltip Overlay */}
-                          <div className="absolute left-0 top-0 hidden group-hover/desc:block z-50 bg-slate-900 text-white p-4 rounded-lg shadow-2xl border border-slate-700 w-[300px] max-h-[250px] overflow-y-auto whitespace-pre-wrap text-[11px] leading-relaxed">
-                            <div className="font-black text-blue-400 mb-2 border-b border-slate-700 pb-1">전체 설명</div>
-                            {video.snippet.description}
+                      <td className="px-3 py-3 align-top text-[12px] relative group/desc cursor-help">
+                          {/* 태그 영역: 정확히 2줄만 노출, 넘칠 경우 숨김 및 말줄임표 느낌 처리 */}
+                          <div className="flex flex-wrap gap-1 max-h-[44px] overflow-hidden mb-2 relative after:content-['...'] after:absolute after:bottom-0 after:right-0 after:bg-white after:px-1 after:hidden group-hover/row:after:bg-slate-50">
+                            {(video.snippet.tags || []).map((t, i) => (
+                              <span key={i} className="inline-block px-1 bg-slate-100 rounded text-slate-600 max-w-[120px] truncate leading-normal">#{t}</span>
+                            ))}
+                          </div>
+                          <p className="line-clamp-4 text-slate-400 font-medium">{video.snippet.description}</p>
+                          
+                          {/* Hover Tooltip Overlay: 마우스 오버 시 전체 태그 및 설명 노출 */}
+                          <div className="absolute left-0 top-0 hidden group-hover/desc:block z-50 bg-slate-900 text-white p-4 rounded-lg shadow-2xl border border-slate-700 w-[300px] max-h-[400px] overflow-y-auto whitespace-pre-wrap text-[11px] leading-relaxed">
+                            <div className="font-black text-blue-400 mb-2 border-b border-slate-700 pb-1">전체 정보 (태그 및 설명)</div>
+                            <div className="mb-3 flex flex-wrap gap-1">
+                              {(video.snippet.tags || []).map((t, i) => <span key={i} className="text-blue-300">#{t}</span>)}
+                              {(!video.snippet.tags || video.snippet.tags.length === 0) && <span className="text-slate-500">등록된 태그 없음</span>}
+                            </div>
+                            <div className="border-t border-slate-700 pt-2 text-slate-300">
+                                {video.snippet.description || "영상 설명이 없습니다."}
+                            </div>
                           </div>
                       </td>
                       <td className="px-3 py-3 align-top">
-                          <a href={`https://www.youtube.com/channel/${video.snippet.channelId}`} target="_blank" className="font-black text-slate-900 text-[15px] hover:text-red-600 hover:underline line-clamp-2 transition-colors">{video.snippet.channelTitle}</a>
-                          <div className="text-[16px] font-black text-slate-900 mt-1">{formatCount(video.channelStatistics?.subscriberCount || '0')}명</div>
+                          <a href={`https://www.youtube.com/channel/${video.snippet.channelId}`} target="_blank" className="font-black text-slate-900 text-[14px] hover:text-red-600 hover:underline line-clamp-2 transition-colors">{video.snippet.channelTitle}</a>
+                          <div className="text-[16px] font-black text-slate-700 mt-1">{formatCount(video.channelStatistics?.subscriberCount || '0')}명</div>
                       </td>
                       <td className="px-2 py-3 align-top text-center">
                          <span className="inline-flex px-2 py-1 rounded bg-slate-100 text-slate-900 font-black text-[14px] border border-slate-200">{parseDuration(video.contentDetails.duration)}</span>
@@ -384,19 +394,19 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       <td className="px-2 py-3 text-right align-top font-black text-slate-900 text-[18px]">{formatCount(video.statistics.viewCount)}</td>
                       <td className="px-2 py-3 text-right align-top space-y-1">
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-[14px] text-slate-700 font-black">좋아요</span>
+                            <span className="text-[14px] text-slate-600 font-black">좋아요</span>
                             <span className="font-black text-slate-900 text-[16px]">{formatCount(video.statistics.likeCount)}</span>
                           </div>
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-[14px] text-slate-700 font-black">댓글</span>
+                            <span className="text-[14px] text-slate-600 font-black">댓글</span>
                             <span className="font-black text-slate-900 text-[16px]">{formatCount(video.statistics.commentCount)}</span>
                           </div>
                       </td>
-                      <td className="px-2 py-3 align-top space-y-1.5 text-[14px] font-bold">
-                           <div className="flex justify-between border-b border-dashed pb-0.5"><span className="text-slate-700">VPH</span><span className="font-black text-slate-900 text-[15px]">{formatCount(video.viewsPerHour.toString())}</span></div>
-                           <div className="flex justify-between"><span className="text-slate-700">참여율</span><span className="font-black text-purple-600 text-[15px]">{engagementRate.toFixed(1)}%</span></div>
-                           <div className="flex justify-between"><span className="text-slate-700">L/V</span><span className="font-black text-blue-600 text-[15px]">{video.likeToViewRatio.toFixed(1)}%</span></div>
-                           <div className="flex justify-between"><span className="text-slate-700">V/S</span><span className="font-black text-green-600 text-[15px]">{video.viewToSubRatio.toFixed(0)}%</span></div>
+                      <td className="px-2 py-3 align-top space-y-1.5 text-[13px] font-bold">
+                           <div className="flex justify-between border-b border-dashed pb-0.5"><span className="text-slate-600">VPH</span><span className="font-black text-slate-900 text-[14px]">{formatCount(video.viewsPerHour.toString())}</span></div>
+                           <div className="flex justify-between"><span className="text-slate-600">참여율</span><span className="font-black text-purple-600 text-[14px]">{engagementRate.toFixed(1)}%</span></div>
+                           <div className="flex justify-between"><span className="text-slate-600">L/V</span><span className="font-black text-blue-600 text-[14px]">{video.likeToViewRatio.toFixed(1)}%</span></div>
+                           <div className="flex justify-between"><span className="text-slate-600">V/S</span><span className="font-black text-green-600 text-[14px]">{video.viewToSubRatio.toFixed(0)}%</span></div>
                       </td>
                       <td className="px-3 py-3 align-top text-sm">
                         <div className="h-[90px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300">
@@ -405,7 +415,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       </td>
                       <td className="px-3 py-3 text-center align-top space-y-2">
                         <a href={`https://downsub.com/?url=https://youtu.be/${video.id}`} target="_blank" className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 border px-2 py-1.5 rounded-md text-[12px] font-black transition-colors"><Subtitles className="w-3.5 h-3.5 mr-1" />자막</a>
-                        <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id} className="flex items-center justify-center w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-2 py-1.5 rounded-md text-[12px] font-black active:scale-95 disabled:opacity-50 transition-all">
+                        <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id || !isGeminiValid} className="flex items-center justify-center w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-2 py-1.5 rounded-md text-[12px] font-black active:scale-95 disabled:opacity-50 transition-all">
                           {generatingId === video.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5 mr-1" />}AI창작
                         </button>
                       </td>

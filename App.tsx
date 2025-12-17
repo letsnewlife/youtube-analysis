@@ -49,6 +49,25 @@ const App: React.FC = () => {
     localStorage.setItem('gm_key', geminiKey);
   }, [geminiKey]);
 
+  // 분석 결과가 있는 상태에서 뒤늦게 Gemini API Key가 인증될 경우 자동으로 AI 분석 시작
+  useEffect(() => {
+    if (isGeminiValid && result && !aiAnalysis && !isAiLoading) {
+      const runDelayedAnalysis = async () => {
+        setIsAiLoading(true);
+        try {
+          await analyzeWithGeminiStream(geminiKey, result.keyword, result.metrics, (chunk) => {
+            setAiAnalysis(prev => prev + chunk);
+          });
+        } catch (err) {
+          console.error("Delayed AI Analysis failed:", err);
+        } finally {
+          setIsAiLoading(false);
+        }
+      };
+      runDelayedAnalysis();
+    }
+  }, [isGeminiValid, result, aiAnalysis, geminiKey, isAiLoading]);
+
   const getCacheKey = (kw: string, f: SearchFilters) => {
     return `cache_${btoa(encodeURIComponent(kw + JSON.stringify(f)))}`;
   };
@@ -77,8 +96,6 @@ const App: React.FC = () => {
       
       if (cachedData) {
         finalResult = JSON.parse(cachedData);
-        // 캐시 데이터가 있을 때도 AI 분석은 새로 받거나, AI 분석까지 캐시할 수 있지만
-        // 여기서는 데이터 로딩 속도 향상을 위해 즉시 결과 표시
         setResult(finalResult);
       } else {
         const videos = await searchVideos(keyword, youtubeKey, filters);
@@ -86,11 +103,10 @@ const App: React.FC = () => {
         const metrics = calculateMetrics(videos);
         finalResult = { keyword, videos, metrics };
         setResult(finalResult);
-        // 결과 캐싱 (필터와 키워드가 완벽히 일치할 때)
         localStorage.setItem(cacheKey, JSON.stringify(finalResult));
       }
 
-      // Gemini AI 스트리밍 분석 시작
+      // 이미 Gemini 키가 인증된 상태라면 즉시 분석 실행
       if (geminiKey && isGeminiValid) {
         setIsAiLoading(true);
         await analyzeWithGeminiStream(geminiKey, keyword, finalResult.metrics, (chunk) => {
@@ -147,10 +163,15 @@ const App: React.FC = () => {
         {result && (
           <div className="animate-fade-in-up space-y-6 md:space-y-10 pb-10">
             <Dashboard metrics={result.metrics} videos={result.videos} keyword={result.keyword} />
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-              <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
-              <ScriptGenerator keyword={result.keyword} geminiKey={geminiKey} />
-            </div>
+            
+            {/* Gemini API 키가 유효할 때만 AI 전략과 대본 작가 노출 */}
+            {isGeminiValid && (
+              <div className="grid grid-cols-1 gap-6 md:gap-8 xl:grid-cols-2">
+                <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
+                <ScriptGenerator keyword={result.keyword} geminiKey={geminiKey} />
+              </div>
+            )}
+            
             <TagList tags={result.metrics.topTags} />
             <VideoTable videos={result.videos} geminiKey={geminiKey} isGeminiValid={isGeminiValid} />
           </div>
