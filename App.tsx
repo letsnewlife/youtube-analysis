@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, Menu, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Search, Loader2, Menu, ShieldCheck } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import VideoTable from './components/VideoTable';
@@ -11,20 +11,15 @@ import SearchFiltersComponent from './components/SearchFilters';
 import ApiKeyGuide from './components/ApiKeyGuide';
 import GeminiKeyGuide from './components/GeminiKeyGuide';
 import { searchVideos, calculateMetrics } from './services/youtubeService';
-import { analyzeWithGemini } from './services/geminiService';
+import { analyzeWithGeminiStream } from './services/geminiService';
 import { AnalysisResult, SearchFilters } from './types';
 
 const App: React.FC = () => {
-  // Navigation State
   const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
-
-  // App State - API Keys (사용자 브라우저에 개별 저장됨)
   const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
   const [geminiKey, setGeminiKey] = useState<string>(() => localStorage.getItem('gm_key') || ''); 
-  
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
   const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
-  
   const [keyword, setKeyword] = useState<string>('');
   const [filters, setFilters] = useState<SearchFilters>({
     order: 'relevance', 
@@ -42,35 +37,10 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  /**
-   * 🛡️ [보안 설정] 도메인 무단 복제 방지 로직
-   * --------------------------------------------------
-   * 배포 후 특정 도메인에서만 작동하게 하려면 아래 allowedPatterns를 수정하고 
-   * renderContent 함수 안의 주석을 해제하세요.
-   */
-  const [isDomainValid, setIsDomainValid] = useState(true);
-  
-  useEffect(() => {
-    const currentHost = window.location.hostname;
-    
-    // 1. 배포 후 아래 배열에 실제 도메인을 추가하세요 (예: 'my-site.netlify.app')
-    const allowedPatterns = [
-      'localhost',
-      '127.0.0.1',
-      'netlify.app', 
-      'your-site.com', 
-    ];
-    
-    const isValid = allowedPatterns.some(pattern => currentHost.includes(pattern));
-    setIsDomainValid(isValid);
-  }, []);
-
-  // Persistence (API 키 로컬 저장)
   useEffect(() => {
     localStorage.setItem('yt_key', youtubeKey);
   }, [youtubeKey]);
@@ -79,12 +49,12 @@ const App: React.FC = () => {
     localStorage.setItem('gm_key', geminiKey);
   }, [geminiKey]);
 
+  const getCacheKey = (kw: string, f: SearchFilters) => {
+    return `cache_${btoa(encodeURIComponent(kw + JSON.stringify(f)))}`;
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 도메인 보안을 켜고 싶다면 아래 if문의 주석을 해제하세요.
-    // if (!isDomainValid) return; 
-
     if (!youtubeKey.trim() || !isYoutubeValid) {
       setError("유효한 YouTube API Key를 먼저 설정하고 [확인] 버튼을 눌러주세요.");
       return;
@@ -99,50 +69,43 @@ const App: React.FC = () => {
     setResult(null);
     setAiAnalysis('');
 
-    try {
-      const videos = await searchVideos(keyword, youtubeKey, filters);
-      if (videos.length === 0) {
-        throw new Error("검색 결과가 없습니다. 필터를 조정하거나 다른 키워드로 시도해보세요.");
-      }
-      const metrics = calculateMetrics(videos);
-      
-      setResult({ keyword, videos, metrics });
+    const cacheKey = getCacheKey(keyword, filters);
+    const cachedData = localStorage.getItem(cacheKey);
 
+    try {
+      let finalResult: AnalysisResult;
+      
+      if (cachedData) {
+        finalResult = JSON.parse(cachedData);
+        // 캐시 데이터가 있을 때도 AI 분석은 새로 받거나, AI 분석까지 캐시할 수 있지만
+        // 여기서는 데이터 로딩 속도 향상을 위해 즉시 결과 표시
+        setResult(finalResult);
+      } else {
+        const videos = await searchVideos(keyword, youtubeKey, filters);
+        if (videos.length === 0) throw new Error("검색 결과가 없습니다.");
+        const metrics = calculateMetrics(videos);
+        finalResult = { keyword, videos, metrics };
+        setResult(finalResult);
+        // 결과 캐싱 (필터와 키워드가 완벽히 일치할 때)
+        localStorage.setItem(cacheKey, JSON.stringify(finalResult));
+      }
+
+      // Gemini AI 스트리밍 분석 시작
       if (geminiKey && isGeminiValid) {
         setIsAiLoading(true);
-        analyzeWithGemini(geminiKey, keyword, metrics)
-          .then(analysis => setAiAnalysis(analysis))
-          .catch(err => console.error("Gemini Analysis Error:", err))
-          .finally(() => setIsAiLoading(false));
+        await analyzeWithGeminiStream(geminiKey, keyword, finalResult.metrics, (chunk) => {
+          setAiAnalysis(prev => prev + chunk);
+        });
+        setIsAiLoading(false);
       }
     } catch (err: any) {
-      setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.");
+      setError(err.message || "오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const renderContent = () => {
-    /**
-     * 🔒 [중요] 도메인 차단 화면 활성화 방법:
-     * 배포 완료 후 무단 도용을 막으려면 아래 'if (!isDomainValid) { ... }' 블록의 주석을 해제하세요.
-     */
-    /*
-    if (!isDomainValid) {
-      return (
-        <div className="flex flex-col items-center justify-center py-20 text-center px-4 min-h-[60vh]">
-          <div className="bg-red-50 p-6 rounded-full mb-6">
-            <AlertTriangle className="w-16 h-16 text-red-500" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">승인되지 않은 환경입니다.</h2>
-          <p className="text-slate-500 leading-relaxed">
-            본 서비스는 지정된 공식 도메인에서만 이용 가능하도록 보호되고 있습니다.
-          </p>
-        </div>
-      );
-    }
-    */
-
     if (currentView === 'youtube_guide') return <ApiKeyGuide onBack={() => setCurrentView('dashboard')} />;
     if (currentView === 'gemini_guide') return <GeminiKeyGuide onBack={() => setCurrentView('dashboard')} />;
 
@@ -184,16 +147,10 @@ const App: React.FC = () => {
         {result && (
           <div className="animate-fade-in-up space-y-6 md:space-y-10 pb-10">
             <Dashboard metrics={result.metrics} videos={result.videos} keyword={result.keyword} />
-            {isGeminiValid ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-                <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
-                <ScriptGenerator keyword={result.keyword} geminiKey={geminiKey} />
-              </div>
-            ) : (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6 text-center text-blue-800 text-sm md:text-base mb-6 shadow-sm font-bold">
-                🤖 사이드바에서 Gemini API Key를 입력하고 확인을 완료하면 AI 기반 심층 분석 기능을 사용할 수 있습니다.
-              </div>
-            )}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+              <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
+              <ScriptGenerator keyword={result.keyword} geminiKey={geminiKey} />
+            </div>
             <TagList tags={result.metrics.topTags} />
             <VideoTable videos={result.videos} geminiKey={geminiKey} isGeminiValid={isGeminiValid} />
           </div>
@@ -204,8 +161,8 @@ const App: React.FC = () => {
             <div className="bg-white p-8 rounded-full shadow-sm mb-6 border border-slate-100">
                 <Search className="w-16 h-16 md:w-20 md:h-20 text-slate-100" />
             </div>
-            <p className="text-xl md:text-2xl font-black text-slate-400">시장을 분석할 준비가 되었습니다.</p>
-            <p className="text-sm text-slate-300 mt-3 font-medium">분석하고 싶은 키워드를 입력하고 엔터를 눌러주세요.</p>
+            <p className="text-xl md:text-2xl font-black text-slate-400">데이터를 분석할 준비가 되었습니다.</p>
+            <p className="text-sm text-slate-300 mt-3 font-medium">키워드를 입력하고 분석 버튼을 눌러주세요.</p>
           </div>
         )}
       </>
@@ -227,7 +184,6 @@ const App: React.FC = () => {
         onShowGeminiGuide={() => { setCurrentView('gemini_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowDashboard={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
       />
-      
       <main className="flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-x-hidden">
         <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
            <div className="flex items-center gap-3">
