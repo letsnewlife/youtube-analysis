@@ -49,6 +49,10 @@ export interface SearchFilters {
   minViews: number;
   maxViews: number;
   maxResults: number;
+  minSubscribers: number;
+  maxSubscribers: number;
+  minViewToSubRatio: number;
+  minVPH: number; // New Filter: Minimum Views Per Hour
 }
 
 export interface AnalysisMetrics {

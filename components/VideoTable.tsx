@@ -128,23 +128,23 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col mb-8 h-[900px]">
       {/* 1. Header & Controls */}
-      <div className="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white rounded-t-xl shrink-0 z-10">
-        <div className="flex items-center gap-3">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2 text-xl">
+      <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white rounded-t-xl shrink-0 z-10">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 md:gap-3">
+            <h3 className="font-black text-slate-800 flex items-center gap-2 text-lg md:text-xl">
             영상 상세 분석
-            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-sm font-semibold">Total: {videos.length}</span>
+            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs font-bold">Total: {videos.length}</span>
             </h3>
              <button 
                 onClick={downloadCSV}
-                className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors shadow-sm ml-2"
+                className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs font-black transition-all active:scale-95 shadow-sm"
                 >
                 <Download className="w-3.5 h-3.5" />
                 <span>CSV 저장</span>
             </button>
         </div>
         
-        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-lg">
-           <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 md:gap-4 bg-slate-50 p-2 rounded-lg w-full sm:w-auto justify-between sm:justify-start">
+           <div className="flex items-center gap-1 md:gap-2">
                 <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
@@ -152,7 +152,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                 >
                     <ChevronLeft className="w-4 h-4 text-slate-600" />
                 </button>
-                <span className="text-sm font-medium text-slate-600 min-w-[60px] text-center">
+                <span className="text-xs md:text-sm font-black text-slate-600 min-w-[50px] md:min-w-[60px] text-center">
                     {currentPage} / {totalPages}
                 </span>
                 <button
@@ -167,14 +167,14 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
            <div className="h-4 w-[1px] bg-slate-300"></div>
 
            <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-500 font-medium">보기:</label>
+            <label className="text-[10px] md:text-xs text-slate-500 font-bold">보기:</label>
             <select 
                 value={itemsPerPage}
                 onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
                 }}
-                className="border border-slate-300 rounded p-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="border border-slate-300 rounded p-1 text-[10px] md:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
                 <option value={10}>10개</option>
                 <option value={20}>20개</option>
@@ -191,7 +191,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
             <colgroup>
                 {/* 1. Thumbnail: Fixed width */}
                 <col className="w-[200px]" /> 
-                {/* 2. Title: Flexible width (increased share) */}
+                {/* 2. Title: Flexible width */}
                 <col className="w-[25%]" />    
                 {/* 3. Tags: Fixed */}
                 <col className="w-[160px]" /> 
@@ -211,7 +211,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                 <col className="w-[100px]" /> 
             </colgroup>
             
-            <thead className="bg-slate-50 text-slate-700 font-bold text-base border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+            <thead className="bg-slate-50 text-slate-700 font-black text-sm md:text-base border-b border-slate-200 sticky top-0 z-20 shadow-sm">
               <tr>
                 <th className="px-3 py-4">썸네일</th>
                 <th className="px-3 py-4">제목 및 게시일</th>
@@ -255,7 +255,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5">
                         <ImageIcon className="w-5 h-5 text-white" />
-                        <span className="text-white text-[10px] font-bold">클릭 시 확대 사진</span>
+                        <span className="text-white text-[10px] font-black">클릭 시 확대 사진</span>
                       </div>
                     </div>
                   </td>
@@ -268,14 +268,14 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                             href={`https://www.youtube.com/watch?v=${video.id}`} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="font-bold text-slate-900 hover:text-blue-600 text-[15px] leading-snug line-clamp-4 break-words"
+                            className="font-black text-slate-900 hover:text-blue-600 text-sm md:text-[15px] leading-snug line-clamp-4 break-words"
                             title={video.snippet.title}
                             >
                             {video.snippet.title}
                             </a>
                         </div>
-                        <div className="flex items-center text-sm font-bold text-slate-900 mt-1 shrink-0 h-auto">
-                            <Calendar className="w-4 h-4 mr-1" />
+                        <div className="flex items-center text-xs md:text-sm font-black text-slate-400 mt-1 shrink-0 h-auto">
+                            <Calendar className="w-3.5 h-3.5 mr-1" />
                             {formatDate(video.snippet.publishedAt)}
                         </div>
                      </div>
@@ -288,7 +288,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                             {video.snippet.tags && video.snippet.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 max-h-[50px] overflow-hidden">
                                 {video.snippet.tags.slice(0, 2).map((tag, idx) => (
-                                <span key={idx} className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap truncate max-w-full">
+                                <span key={idx} className="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap truncate max-w-full">
                                     #{tag}
                                 </span>
                                 ))}
@@ -297,7 +297,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                                 )}
                             </div>
                             )}
-                            <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed break-all">
+                            <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed break-all font-medium">
                                 {video.snippet.description ? video.snippet.description : "설명 없음"}
                             </p>
                         </div>
@@ -305,13 +305,13 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                            {video.snippet.tags && video.snippet.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-2">
                                 {video.snippet.tags.map((tag, idx) => (
-                                <span key={idx} className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 whitespace-normal">
+                                <span key={idx} className="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100 whitespace-normal">
                                     #{tag}
                                 </span>
                                 ))}
                             </div>
                             )}
-                            <p className="text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed font-medium">
                                 {video.snippet.description || "설명 없음"}
                             </p>
                         </div>
@@ -325,13 +325,13 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                             href={`https://www.youtube.com/channel/${video.snippet.channelId}`} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="font-bold text-slate-900 hover:text-blue-600 text-[13px] break-words leading-tight flex flex-col gap-1"
+                            className="font-black text-slate-900 hover:text-blue-600 text-[13px] break-words leading-tight flex flex-col gap-1"
                             title={video.snippet.channelTitle}
                         >
                             {video.snippet.channelTitle}
                             <span className="inline-block"><ExternalLink className="w-3 h-3 text-slate-300" /></span>
                         </a>
-                        <p className="text-base text-slate-900 font-bold">
+                        <p className="text-base text-slate-900 font-black">
                             {formatCount(video.channelStatistics?.subscriberCount || '0')}명
                         </p>
                       </div>
@@ -339,14 +339,14 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
 
                   {/* Duration */}
                   <td className="px-2 py-3 align-top text-center">
-                     <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 font-bold text-sm border border-slate-200">
+                     <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 font-black text-xs md:text-sm border border-slate-200">
                         {parseDuration(video.contentDetails.duration)}
                      </span>
                   </td>
 
                   {/* Views */}
                   <td className="px-2 py-3 text-right align-top">
-                    <span className="font-black text-slate-900 text-lg tracking-tight block">
+                    <span className="font-black text-slate-900 text-base md:text-lg tracking-tight block">
                       {formatCount(video.statistics.viewCount)}
                     </span>
                   </td>
@@ -355,34 +355,34 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                   <td className="px-2 py-3 text-right align-top">
                      <div className="space-y-1">
                         <div className="flex items-center justify-end gap-1.5">
-                          <span className="text-sm text-slate-500 font-bold">좋아요</span>
-                          <span className="font-extrabold text-lg text-slate-900">{formatCount(video.statistics.likeCount)}</span>
+                          <span className="text-[11px] md:text-xs text-slate-400 font-black">좋아요</span>
+                          <span className="font-black text-sm md:text-base text-slate-900">{formatCount(video.statistics.likeCount)}</span>
                         </div>
                         <div className="flex items-center justify-end gap-1.5">
-                          <span className="text-sm text-slate-500 font-bold">댓글</span>
-                          <span className="font-extrabold text-lg text-slate-900">{formatCount(video.statistics.commentCount)}</span>
+                          <span className="text-[11px] md:text-xs text-slate-400 font-black">댓글</span>
+                          <span className="font-black text-sm md:text-base text-slate-900">{formatCount(video.statistics.commentCount)}</span>
                         </div>
                      </div>
                   </td>
                   
                   {/* Performance */}
                   <td className="px-2 py-3 align-top">
-                     <div className="space-y-1.5 text-sm font-medium">
+                     <div className="space-y-1.5 text-xs md:text-sm font-bold">
                        <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-0.5">
-                          <span className="text-sm text-slate-500 font-bold">VPH</span>
-                          <span className="font-extrabold text-base text-slate-900">{formatCount(video.viewsPerHour.toString())}</span>
+                          <span className="text-slate-400">VPH</span>
+                          <span className="font-black text-slate-900">{formatCount(video.viewsPerHour.toString())}</span>
                        </div>
                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-500 font-bold" title="Engagement Rate">참여율</span>
-                          <span className="font-extrabold text-base text-purple-600">{engagementRate.toFixed(1)}%</span>
+                          <span className="text-slate-400" title="Engagement Rate">참여율</span>
+                          <span className="font-black text-purple-600">{engagementRate.toFixed(1)}%</span>
                        </div>
                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-500 font-bold">L/V</span>
-                          <span className="font-extrabold text-base text-blue-600">{video.likeToViewRatio.toFixed(1)}%</span>
+                          <span className="text-slate-400">L/V</span>
+                          <span className="font-black text-blue-600">{video.likeToViewRatio.toFixed(1)}%</span>
                        </div>
                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-500 font-bold">V/S</span>
-                          <span className={`font-extrabold text-base text-green-600`}>
+                          <span className="text-slate-400">V/S</span>
+                          <span className={`font-black text-green-600`}>
                               {video.viewToSubRatio.toFixed(0)}%
                           </span>
                        </div>
@@ -395,7 +395,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       {video.comments && video.comments.length > 0 ? (
                         <div className="space-y-1.5">
                           {video.comments.map((comment, idx) => (
-                            <div key={idx} className="bg-slate-50 p-2 rounded border border-slate-100 text-slate-700 leading-snug text-sm">
+                            <div key={idx} className="bg-slate-50 p-2 rounded border border-slate-100 text-slate-700 leading-snug text-[11px] md:text-xs font-medium">
                                {comment}
                             </div>
                           ))}
@@ -412,7 +412,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       href={`https://downsub.com/?url=https://www.youtube.com/watch?v=${video.id}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-center space-x-1 w-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 px-2 py-1.5 rounded-md text-[11px] font-bold transition-colors"
+                      className="flex items-center justify-center space-x-1 w-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 px-2 py-1.5 rounded-md text-[10px] md:text-[11px] font-black transition-all active:scale-95"
                     >
                       <Subtitles className="w-3 h-3" />
                       <span>자막</span>
@@ -421,7 +421,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                     <button 
                       onClick={() => handleGenerateScript(video)}
                       disabled={generatingId === video.id || !isGeminiValid}
-                      className={`flex items-center justify-center space-x-1 w-full px-2 py-1.5 rounded-md text-[11px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`flex items-center justify-center space-x-1 w-full px-2 py-1.5 rounded-md text-[10px] md:text-[11px] font-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                         !isGeminiValid 
                           ? 'bg-slate-100 text-slate-400 border border-slate-200' 
                           : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'

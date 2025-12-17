@@ -13,21 +13,22 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setScript(`[영상 기획 설정]
-1. 주제 및 제목: ${keyword} 관련 (예: ${keyword} 잘하는 법 Top 3)
-2. 목표 영상 길이: 5분 내외
-3. 타겟 시청자: (예: 2030 직장인, 주부, 학생 등)
-4. 핵심 메시지: (이 영상에서 전달하고 싶은 단 하나의 메시지)
-5. 영상 분위기: (예: 유쾌한, 진지한, 정보 전달 위주)
+    setScript(`[영상 기획 요청서]
+1. 주제(키워드): ${keyword}
+2. 영상 컨셉: (예: 랭킹쇼, 하우투(How-to), 브이로그, 인터뷰, 썰풀기 등)
+3. 타겟 시청자: (예: 유튜브 시작하려는 직장인, 요리 초보 자취생)
+4. 전달하고 싶은 핵심 가치: (시청자가 이 영상을 보고 무엇을 얻어가야 하나요?)
 
-6. 참고 스크립트 (선택):
-(여기에 참고하고 싶은 기존 영상의 스크립트나 내용을 붙여넣으세요. AI가 이 스타일을 참고하여 작성합니다.)
+5. 참고 레퍼런스(선택):
+- (벤치마킹하고 싶은 채널이나 영상 스타일이 있다면 적어주세요. AI가 톤앤매너를 학습합니다.)
 
-7. 기타 요구사항:
-(예: 특정 단어 포함, PPL 포함, 시리즈물 여부 등)
+6. 포함해야 할 내용/단어:
+- (꼭 말해야 하는 브랜드명, 유행어, 혹은 PPL 내용)
 
-[요청 사항]
-위 설정을 바탕으로 유튜브 알고리즘이 좋아하는 최적화된 대본을 작성해줘.`);
+[요청사항]
+- 초반 5초 안에 시청자를 사로잡는 강력한 후킹 멘트를 넣어주세요.
+- 편집자를 위한 화면 전환 및 효과음 가이드([자료화면], [효과음] 등)를 포함해주세요.
+- 조회수 떡상을 부르는 썸네일 문구 3개도 같이 추천해주세요.`);
   }, [keyword]);
 
   const handleGenerate = async () => {
@@ -75,7 +76,7 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
            </div>
            <div>
              <h3 className="font-bold text-slate-800">AI 대본 작가</h3>
-             <p className="text-xs text-slate-500">기획안과 참고자료를 입력하세요.</p>
+             <p className="text-xs text-slate-500">100만 유튜버 메인 작가 페르소나가 적용되었습니다.</p>
            </div>
         </div>
         
