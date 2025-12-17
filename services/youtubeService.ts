@@ -1,9 +1,9 @@
+
 import { YouTubeVideo, AnalysisMetrics, SearchFilters } from '../types';
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
-// Helper to chunk arrays
-const chunkArray = (arr: any[], size: number) => {
+const chunkArray = <T>(arr: T[], size: number): T[][] => {
   const result = [];
   for (let i = 0; i < arr.length; i += size) {
     result.push(arr.slice(i, i + size));
@@ -11,13 +11,12 @@ const chunkArray = (arr: any[], size: number) => {
   return result;
 };
 
-// Verify API Key validity
 export const verifyYoutubeApi = async (apiKey: string): Promise<boolean> => {
   if (!apiKey) return false;
   try {
     const response = await fetch(`${BASE_URL}/videos?part=id&chart=mostPopular&maxResults=1&key=${apiKey}`);
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -32,115 +31,83 @@ export const searchVideos = async (
   const validVideos: YouTubeVideo[] = [];
   let nextPageToken = '';
   let loopCount = 0;
-  
-  // Safety limit: Do not fetch more than 5 pages (approx 250 items) to save quota
-  // because each "search" call costs 100 units.
-  const MAX_LOOPS = 5; 
+  const MAX_LOOPS = 4; // Quota safety
 
   while (validVideos.length < filters.maxResults && loopCount < MAX_LOOPS) {
     loopCount++;
 
-    // 1. Search Request
-    let searchUrl = `${BASE_URL}/search?part=snippet&maxResults=50&q=${encodeURIComponent(keyword)}&type=video&key=${apiKey}`;
+    let searchUrl = `${BASE_URL}/search?part=snippet&maxResults=50&q=${encodeURIComponent(keyword)}&type=video&key=${apiKey}&order=${filters.order}`;
     
-    // Apply API Filters
-    searchUrl += `&order=${filters.order}`; 
-
-    if (filters.videoDuration !== 'any') {
-      searchUrl += `&videoDuration=${filters.videoDuration}`;
-    }
-    if (filters.publishedAfter) {
-      searchUrl += `&publishedAfter=${new Date(filters.publishedAfter).toISOString()}`;
-    }
-    
-    if (nextPageToken) {
-      searchUrl += `&pageToken=${nextPageToken}`;
-    }
+    if (filters.videoDuration !== 'any') searchUrl += `&videoDuration=${filters.videoDuration}`;
+    if (filters.publishedAfter) searchUrl += `&publishedAfter=${new Date(filters.publishedAfter).toISOString()}`;
+    if (nextPageToken) searchUrl += `&pageToken=${nextPageToken}`;
 
     const searchResponse = await fetch(searchUrl);
-    
     if (!searchResponse.ok) {
       const errorData = await searchResponse.json();
-      if (searchResponse.status === 403) {
-        const reason = errorData.error?.errors?.[0]?.reason;
-        if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
-             throw new Error("⚠️ YouTube API 일일 할당량이 초과되었습니다. (Quota Exceeded)\n내일 다시 시도하거나, 다른 API Key를 사용해주세요.");
-        }
+      const reason = errorData.error?.errors?.[0]?.reason;
+      if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
+        throw new Error("⚠️ YouTube API 할당량이 초과되었습니다. 다른 API Key를 사용하거나 내일 다시 시도해주세요.");
       }
-      if (loopCount === 1) {
-         throw new Error(errorData.error?.message || 'YouTube Search API 호출 실패');
-      }
+      if (loopCount === 1) throw new Error(errorData.error?.message || '검색 요청 실패');
       break; 
     }
 
     const searchData = await searchResponse.json();
     const rawItems = searchData.items || [];
     nextPageToken = searchData.nextPageToken;
-
     if (rawItems.length === 0) break;
 
-    // Remove duplicates already in validVideos
     const existingIds = new Set(validVideos.map(v => v.id));
-    const newItems = rawItems.filter((item: any) => !existingIds.has(item.id.videoId));
-    const videoIds = newItems.map((item: any) => item.id.videoId);
-    
+    const videoIds = rawItems.map((item: any) => item.id.videoId).filter((id: string) => !existingIds.has(id));
     if (videoIds.length === 0) {
-       if (!nextPageToken) break;
-       continue;
+      if (!nextPageToken) break;
+      continue;
     }
 
-    // 2. Get Video Details (Batched)
+    // Optimization: Parallel Fetching for details
     const videoIdChunks = chunkArray(videoIds, 50);
-    let allVideosDetails: any[] = [];
+    const videosDetailsResponses = await Promise.all(
+      videoIdChunks.map(chunk => 
+        fetch(`${BASE_URL}/videos?part=snippet,statistics,contentDetails&id=${chunk.join(',')}&key=${apiKey}`)
+          .then(res => res.json())
+          .catch(() => ({ items: [] }))
+      )
+    );
 
-    for (const chunk of videoIdChunks) {
-      const videosUrl = `${BASE_URL}/videos?part=snippet,statistics,contentDetails&id=${chunk.join(',')}&key=${apiKey}`;
-      const videosResponse = await fetch(videosUrl);
-      if (videosResponse.ok) {
-        const videosData = await videosResponse.json();
-        allVideosDetails = [...allVideosDetails, ...videosData.items];
-      }
-    }
-
-    // 3. Get Channel Details (Batched)
+    const allVideosDetails = videosDetailsResponses.flatMap(res => res.items || []);
     const channelIds = [...new Set(allVideosDetails.map((v: any) => v.snippet.channelId))];
     const channelIdChunks = chunkArray(channelIds, 50);
+
+    const channelsDataResponses = await Promise.all(
+      channelIdChunks.map(chunk => 
+        fetch(`${BASE_URL}/channels?part=statistics&id=${chunk.join(',')}&key=${apiKey}`)
+          .then(res => res.json())
+          .catch(() => ({ items: [] }))
+      )
+    );
+
     const channelMap: Record<string, any> = {};
-
-    for (const chunk of channelIdChunks) {
-      const channelsUrl = `${BASE_URL}/channels?part=statistics&id=${chunk.join(',')}&key=${apiKey}`;
-      const channelsResponse = await fetch(channelsUrl);
-      if (channelsResponse.ok) {
-        const channelsData = await channelsResponse.json();
-        channelsData.items.forEach((ch: any) => {
-          channelMap[ch.id] = ch.statistics;
-        });
-      }
-    }
-
-    // 4. Construct & Filter Objects
-    const currentBatchProcessed: YouTubeVideo[] = [];
+    channelsDataResponses.flatMap(res => res.items || []).forEach((ch: any) => {
+      channelMap[ch.id] = ch.statistics;
+    });
 
     for (const item of allVideosDetails) {
-        // If we already have enough videos, stop processing this batch
-        if (validVideos.length + currentBatchProcessed.length >= filters.maxResults) break;
+        if (validVideos.length >= filters.maxResults) break;
 
         const viewCount = parseInt(item.statistics.viewCount || '0', 10);
         const likeCount = parseInt(item.statistics.likeCount || '0', 10);
         const subscriberCount = parseInt(channelMap[item.snippet.channelId]?.subscriberCount || '0', 10);
         
         const publishedAt = new Date(item.snippet.publishedAt);
-        const now = new Date();
-        const hoursSincePublished = Math.max(1, (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60));
+        const hoursSincePublished = Math.max(1, (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60));
         const viewsPerHour = viewCount / hoursSincePublished;
 
         const likeToViewRatio = viewCount > 0 ? (likeCount / viewCount) * 100 : 0;
         const likeToSubRatio = subscriberCount > 0 ? (likeCount / subscriberCount) * 100 : 0;
         const viewToSubRatio = subscriberCount > 0 ? (viewCount / subscriberCount) * 100 : 0;
 
-        // --- Filtering Logic ---
         let isValid = true;
-
         if (filters.minViews > 0 && viewCount < filters.minViews) isValid = false;
         if (filters.maxViews > 0 && viewCount > filters.maxViews) isValid = false;
         if (filters.minSubscribers > 0 && subscriberCount < filters.minSubscribers) isValid = false;
@@ -149,7 +116,7 @@ export const searchVideos = async (
         if (filters.minVPH > 0 && viewsPerHour < filters.minVPH) isValid = false;
 
         if (isValid) {
-            currentBatchProcessed.push({
+            validVideos.push({
                 id: item.id,
                 snippet: item.snippet,
                 statistics: item.statistics,
@@ -162,171 +129,84 @@ export const searchVideos = async (
             });
         }
     }
-
-    validVideos.push(...currentBatchProcessed);
-
-    // Stop if no next page
     if (!nextPageToken) break;
   }
 
-  // 5. Fetch Top Comments for the final list
-  // Note: Fetch comments only for the top N videos to avoid excessive quota usage
-  const commentFetchLimit = Math.min(validVideos.length, 30);
-  
-  const finalVideos = await Promise.all(
-    validVideos.map(async (video, index) => {
-      if (index >= commentFetchLimit) return video; 
-
+  // Parallel Comment Fetching for top videos
+  const commentLimit = Math.min(validVideos.length, 15);
+  const commentResults = await Promise.all(
+    validVideos.slice(0, commentLimit).map(async (video) => {
       try {
-        const commentUrl = `${BASE_URL}/commentThreads?part=snippet&videoId=${video.id}&maxResults=10&order=relevance&key=${apiKey}`;
-        const commentRes = await fetch(commentUrl);
-        
-        if (!commentRes.ok) return video;
-
-        const commentData = await commentRes.json();
-        
-        const videoOwnerChannelId = video.snippet.channelId;
-        const comments = commentData.items
-          ?.filter((item: any) => item.snippet.topLevelComment.snippet.authorChannelId.value !== videoOwnerChannelId)
-          .map((item: any) => item.snippet.topLevelComment.snippet.textOriginal)
-          .slice(0, 5) || [];
-        
-        return { ...video, comments };
-      } catch (error) {
-        return video;
-      }
+        const res = await fetch(`${BASE_URL}/commentThreads?part=snippet&videoId=${video.id}&maxResults=5&order=relevance&key=${apiKey}`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.items?.map((i: any) => i.snippet.topLevelComment.snippet.textOriginal) || [];
+      } catch { return []; }
     })
   );
 
-  return finalVideos;
+  return validVideos.map((video, idx) => ({
+    ...video,
+    comments: idx < commentLimit ? commentResults[idx] : []
+  }));
 };
 
 export const calculateMetrics = (videos: YouTubeVideo[]): AnalysisMetrics => {
-  if (videos.length === 0) {
-    return {
-      analyzedVideoCount: 0,
-      uniqueChannelCount: 0,
-      avgViews: 0,
-      avgLikes: 0,
-      avgComments: 0,
-      avgSubscribers: 0,
-      avgViewsPerHour: 0,
-      avgLikeToViewRatio: 0,
-      avgLikeToSubRatio: 0,
-      engagementRate: 0,
-      marketSizeLevel: 'Tiny',
-      difficultyScore: 0,
-      difficultyLevel: 'Easy',
-      topTags: []
-    };
-  }
+  if (videos.length === 0) return {
+    analyzedVideoCount: 0, uniqueChannelCount: 0, avgViews: 0, avgLikes: 0, avgComments: 0, avgSubscribers: 0,
+    avgViewsPerHour: 0, avgLikeToViewRatio: 0, avgLikeToSubRatio: 0, engagementRate: 0, marketSizeLevel: 'Tiny',
+    difficultyScore: 0, difficultyLevel: 'Easy', topTags: []
+  };
 
-  let totalViews = 0;
-  let totalLikes = 0;
-  let totalComments = 0;
-  let totalVPH = 0;
-  let totalLikeToView = 0;
-  let totalLikeToSub = 0;
-  let totalSubscribers = 0;
-  let validSubCount = 0;
-  
-  const uniqueChannels = new Set();
-  const tagFrequency: Record<string, number> = {};
+  let totalViews = 0, totalLikes = 0, totalComments = 0, totalVPH = 0, totalLikeToView = 0, totalLikeToSub = 0, totalSubscribers = 0, validSubCount = 0;
+  const uniqueChannels = new Set<string>(), tagFrequency: Record<string, number> = {};
 
-  videos.forEach(video => {
-    const views = parseInt(video.statistics.viewCount || '0', 10);
-    const likes = parseInt(video.statistics.likeCount || '0', 10);
-    const comments = parseInt(video.statistics.commentCount || '0', 10);
-    const subs = parseInt(video.channelStatistics?.subscriberCount || '0', 10);
-
-    totalViews += views;
-    totalLikes += likes;
-    totalComments += comments;
-    totalVPH += video.viewsPerHour;
-    totalLikeToView += video.likeToViewRatio;
-    
-    uniqueChannels.add(video.snippet.channelId);
-
-    if (subs > 0) {
-      totalSubscribers += subs;
-      totalLikeToSub += video.likeToSubRatio;
-      validSubCount++;
-    }
-
-    video.snippet.tags?.forEach(tag => {
-      const normalizedTag = tag.toLowerCase();
-      tagFrequency[normalizedTag] = (tagFrequency[normalizedTag] || 0) + 1;
-    });
+  videos.forEach(v => {
+    const views = parseInt(v.statistics.viewCount || '0', 10);
+    const likes = parseInt(v.statistics.likeCount || '0', 10);
+    const comments = parseInt(v.statistics.commentCount || '0', 10);
+    const subs = parseInt(v.channelStatistics?.subscriberCount || '0', 10);
+    totalViews += views; totalLikes += likes; totalComments += comments; totalVPH += v.viewsPerHour; totalLikeToView += v.likeToViewRatio;
+    uniqueChannels.add(v.snippet.channelId);
+    if (subs > 0) { totalSubscribers += subs; totalLikeToSub += v.likeToSubRatio; validSubCount++; }
+    v.snippet.tags?.forEach(tag => { const t = tag.toLowerCase(); tagFrequency[t] = (tagFrequency[t] || 0) + 1; });
   });
 
   const avgViews = totalViews / videos.length;
-  const avgLikes = totalLikes / videos.length;
-  const avgComments = totalComments / videos.length;
-  const avgViewsPerHour = totalVPH / videos.length;
-  const avgLikeToViewRatio = totalLikeToView / videos.length;
-  const avgLikeToSubRatio = validSubCount > 0 ? totalLikeToSub / validSubCount : 0;
   const avgSubscribers = validSubCount > 0 ? totalSubscribers / validSubCount : 0;
-  
-  // Engagement Rate
-  const engagementRate = avgViews > 0 ? ((avgLikes + avgComments) / avgViews) * 100 : 0;
+  const engagementRate = avgViews > 0 ? ((totalLikes / videos.length + totalComments / videos.length) / avgViews) * 100 : 0;
 
-  // Market Size Logic (Updated with Mega)
-  let marketSizeLevel: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Mega' = 'Tiny';
+  let marketSizeLevel: AnalysisMetrics['marketSizeLevel'] = 'Tiny';
   if (avgViews > 2000000) marketSizeLevel = 'Mega';
   else if (avgViews > 1000000) marketSizeLevel = 'Huge';
   else if (avgViews > 500000) marketSizeLevel = 'Large';
   else if (avgViews > 100000) marketSizeLevel = 'Medium';
   else if (avgViews > 10000) marketSizeLevel = 'Small';
 
-  // --- Difficulty Score Calculation ---
-  const minSubRef = 1000;
-  const maxSubRef = 10000000;
-  const safeAvgSubs = Math.max(avgSubscribers, minSubRef); 
-  
-  const logCurrent = Math.log10(safeAvgSubs);
-  const logMin = Math.log10(minSubRef); 
-  const logMax = Math.log10(maxSubRef); 
-  
-  let channelPowerScore = ((logCurrent - logMin) / (logMax - logMin)) * 100;
-  channelPowerScore = Math.max(0, Math.min(100, channelPowerScore));
+  const safeAvgSubs = Math.max(avgSubscribers, 500); 
+  const channelPowerScore = Math.max(0, Math.min(100, (Math.log10(safeAvgSubs) / 7) * 100));
+  const difficultyScore = Math.max(1, Math.min(99, Math.round(channelPowerScore)));
 
-  const viewToSubRatio = avgSubscribers > 0 ? avgViews / avgSubscribers : 1;
-  let viralModifier = 0;
-
-  if (viewToSubRatio > 10.0) viralModifier = -30; 
-  else if (viewToSubRatio > 5.0) viralModifier = -20; 
-  else if (viewToSubRatio > 2.0) viralModifier = -10; 
-  else if (viewToSubRatio > 1.0) viralModifier = -5;  
-  else if (viewToSubRatio < 0.3) viralModifier = +10; 
-
-  let rawDifficulty = channelPowerScore + viralModifier;
-  const difficultyScore = Math.max(5, Math.min(99, Math.round(rawDifficulty)));
-
-  let difficultyLevel: 'Easy' | 'Medium' | 'Hard' | 'Extreme' = 'Medium';
+  let difficultyLevel: AnalysisMetrics['difficultyLevel'] = 'Medium';
   if (difficultyScore >= 80) difficultyLevel = 'Extreme';
   else if (difficultyScore >= 60) difficultyLevel = 'Hard';
   else if (difficultyScore >= 35) difficultyLevel = 'Medium';
   else difficultyLevel = 'Easy';
 
-  const sortedTags = Object.entries(tagFrequency)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 15)
-    .map(([tag]) => tag);
-
   return {
     analyzedVideoCount: videos.length,
     uniqueChannelCount: uniqueChannels.size,
-    avgViews, 
-    avgLikes,
-    avgComments,
+    avgViews,
+    avgLikes: totalLikes / videos.length,
+    avgComments: totalComments / videos.length,
     avgSubscribers,
-    avgViewsPerHour,
-    avgLikeToViewRatio,
-    avgLikeToSubRatio,
+    avgViewsPerHour: totalVPH / videos.length,
+    avgLikeToViewRatio: totalLikeToView / videos.length,
+    avgLikeToSubRatio: validSubCount > 0 ? totalLikeToSub / validSubCount : 0,
     engagementRate,
     marketSizeLevel,
     difficultyScore,
     difficultyLevel,
-    topTags: sortedTags
+    topTags: Object.entries(tagFrequency).sort((a, b) => b[1] - a[1]).slice(0, 15).map(e => e[0])
   };
 };

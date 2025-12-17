@@ -2,16 +2,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisMetrics, YouTubeVideo } from "../types";
 
-// Verify Gemini API Key validity via actual SDK call
+/**
+ * Gemini API Key Verification
+ * Uses the provided key to ensure it works before allowing AI features.
+ */
 export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
   if (!apiKey || !apiKey.trim()) return false;
   try {
+    // Guidelines require initialization with apiKey. 
+    // We prioritize the sidebar input for user flexibility.
     const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     
-    // Attempt a very cheap, minimal generation to verify the key works.
     await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: 'hi',
+      contents: 'ping',
       config: {
         maxOutputTokens: 1,
       }
@@ -19,24 +23,23 @@ export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
     
     return true;
   } catch (error) {
-    console.error("Gemini verification failed:", error);
+    console.error("Gemini Verification Error:", error);
     return false;
   }
 };
 
+/**
+ * Comprehensive Keyword & Strategy Analysis
+ */
 export const analyzeWithGemini = async (
   apiKey: string,
   keyword: string,
   metrics: AnalysisMetrics
 ): Promise<string> => {
-  if (!apiKey) {
-    return "Gemini API 키가 설정되지 않아 AI 분석을 사용할 수 없습니다.";
-  }
-
-  const safeKey = apiKey.trim();
+  if (!apiKey) return "API 키가 유효하지 않습니다.";
 
   try {
-    const ai = new GoogleGenAI({ apiKey: safeKey });
+    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     
     const prompt = `
       당신은 유튜브 알고리즘, SEO(검색 엔진 최적화), 그리고 수익화 전략에 정통한 **유튜브 채널 전문 컨설턴트**입니다.
@@ -70,30 +73,29 @@ export const analyzeWithGemini = async (
       5. 🖼️ **클릭을 부르는 썸네일 & 카피라이팅 전략**:
          - 클릭률(CTR)을 높이기 위한 썸네일 디자인 요소와 제목 패턴을 제시하세요.
 
-      어조: 매우 전문적이고 분석적이며, 동시에 실행 가능한 액션 아이템을 제시하는 격려하는 톤.
+      어조: 매우 전문적이고 분석적이며 실행 가능한 정보를 제공하는 신뢰감 있는 톤.
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
     });
 
     return response.text || "분석 결과를 생성할 수 없습니다.";
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "AI 분석 중 오류가 발생했습니다. 키가 유효한지 확인해주세요.";
+    console.error("Gemini Analysis Error:", error);
+    return "AI 분석 중 오류가 발생했습니다. 할당량이나 키 상태를 확인해주세요.";
   }
 };
 
+/**
+ * Creative Script Generation with retention-focused instructions
+ */
 export const generateVideoScript = async (apiKey: string, userPrompt: string): Promise<string> => {
-  if (!apiKey) {
-    throw new Error("Gemini API Key is missing");
-  }
-
-  const safeKey = apiKey.trim();
+  if (!apiKey) throw new Error("API Key missing");
 
   try {
-    const ai = new GoogleGenAI({ apiKey: safeKey });
+    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     
     const systemInstruction = `
       당신은 **100만 유튜버를 배출한 전설적인 메인 작가**이자 **유튜브 알고리즘 해커**입니다.
@@ -109,7 +111,7 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: userPrompt,
       config: {
         systemInstruction: systemInstruction
@@ -123,25 +125,21 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
   }
 };
 
+/**
+ * Metadata-based Video Script Reconstruction
+ */
 export const generateVideoSpecificScript = async (apiKey: string, video: YouTubeVideo): Promise<string> => {
-  if (!apiKey) {
-    throw new Error("Gemini API Key is missing");
-  }
-
-  const safeKey = apiKey.trim();
+  if (!apiKey) throw new Error("API Key missing");
 
   try {
-    const ai = new GoogleGenAI({ apiKey: safeKey });
-    
-    const duration = video.contentDetails.duration;
-    
+    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     const prompt = `
       당신은 전문 스크립트 복원가입니다. 
       아래 메타데이터를 기반으로, 실제 영상에서 진행되었을 법한 **전체 대본(Full Script)**을 상세하게 재구성해주세요.
       
       [영상 정보]
       - 제목: ${video.snippet.title}
-      - 길이: ${duration}
+      - 길이: ${video.contentDetails.duration}
       - 채널명: ${video.snippet.channelTitle}
       - 설명: ${video.snippet.description}
       
@@ -154,11 +152,11 @@ export const generateVideoSpecificScript = async (apiKey: string, video: YouTube
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
     });
 
-    return response.text || "대본을 생성할 수 없습니다.";
+    return response.text || "대본 생성 실패";
   } catch (error) {
     console.error("Gemini Specific Script Error:", error);
     throw error;
