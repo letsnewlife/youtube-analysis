@@ -50,12 +50,12 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 세션 강제 동기화: 차단된 유저를 즉시 걸러내기 위함
+  // 세션 실시간 동기화: ignoreCache를 통해 로컬 스토리지에 토큰이 있어도 서버에 계정 상태를 묻습니다.
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      getAccessTokenSilently().catch(err => {
-        console.warn("Session Sync Error:", err);
-        // 서버에서 거부되면 useAuth0의 error 상태가 업데이트되며 팝업이 뜹니다.
+      getAccessTokenSilently({ ignoreCache: true }).catch(err => {
+        console.warn("Real-time Session Validation Failed:", err);
+        // 여기서 에러가 발생하면 useAuth0의 authError 상태가 업데이트되어 팝업이 뜹니다.
       });
     }
   }, [isAuthenticated, authLoading, getAccessTokenSilently]);
@@ -92,7 +92,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
     return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-600" /></div>;
   }
 
-  // 2. 인증 에러가 있는 경우 (차단됨) 대시보드 렌더링 방지
+  // 2. 인증 에러가 있는 경우 (차단됨/승인취소됨) 대시보드 진입 원천 차단
   const hasAuthError = !!authError;
   if (isAuthenticated && hasAuthError) {
     return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" />; // Auth0ApprovalPopup이 위에 뜰 것임
