@@ -2,18 +2,27 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisMetrics, YouTubeVideo } from "../types";
 
-// 모델 우선순위: gemini-3-flash-preview -> gemini-2.5-flash-latest -> gemini-flash-lite-latest
+/**
+ * 모델 우선순위 설정:
+ * 1. gemini-3-flash-preview (최신/고성능)
+ * 2. gemini-2.5-flash (표준)
+ * 3. gemini-flash-lite-latest (경량/높은 할당량)
+ */
 const MODELS = [
   'gemini-3-flash-preview',
-  'gemini-2.5-flash-latest',
+  'gemini-2.5-flash',
   'gemini-flash-lite-latest'
 ];
 
+/**
+ * API 키 유효성 검사
+ * 사용자가 사이드바에서 [확인] 버튼을 직접 눌렀을 때만 호출됩니다.
+ * 'ping'이라는 단 한 단어와 maxOutputTokens: 1 설정을 통해 토큰 소모를 극소화합니다.
+ */
 export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
   if (!apiKey || !apiKey.trim()) return false;
   try {
     const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-    // 가장 성능이 좋은 모델로 먼저 테스트
     await ai.models.generateContent({
       model: MODELS[0],
       contents: 'ping',
@@ -59,17 +68,22 @@ export const analyzeWithGeminiStream = async (
         const text = chunk.text;
         if (text) onChunk(text);
       }
-      return; // 성공 시 함수 종료
+      return; // 성공 시 종료
     } catch (error: any) {
       const errorMessage = error?.message || "";
-      // 할당량 초과(429) 에러 발생 시 다음 모델로 시도
-      if (MODELS.indexOf(modelName) < MODELS.length - 1 && 
-          (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("exhausted") || errorMessage.includes("limit"))) {
-        console.warn(`[Fallback] ${modelName} 할당량 초과. 다음 모델로 시도합니다.`);
+      const isQuotaError = errorMessage.includes("429") || 
+                          errorMessage.includes("quota") || 
+                          errorMessage.includes("exhausted") || 
+                          errorMessage.includes("limit");
+
+      // 할당량 초과 시 다음 모델로 폴백
+      if (isQuotaError && MODELS.indexOf(modelName) < MODELS.length - 1) {
+        console.warn(`[Fallback] ${modelName} 할당량 초과. ${MODELS[MODELS.indexOf(modelName) + 1]} 모델로 재시도합니다.`);
         continue;
       }
+      
       console.error(`Gemini Streaming Error (${modelName}):`, error);
-      onChunk("\n\n[오류] 분석 중 문제가 발생했습니다. API 키의 할당량이나 가용 지역을 확인해주세요.");
+      onChunk("\n\n[오류] 모든 모델의 할당량이 소진되었거나 네트워크 오류가 발생했습니다.");
       break;
     }
   }
@@ -90,8 +104,7 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
       return response.text || "대본 생성 실패";
     } catch (error: any) {
       const errorMessage = error?.message || "";
-      if (MODELS.indexOf(modelName) < MODELS.length - 1 && 
-          (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("exhausted") || errorMessage.includes("limit"))) {
+      if ((errorMessage.includes("429") || errorMessage.includes("quota")) && MODELS.indexOf(modelName) < MODELS.length - 1) {
         continue;
       }
       throw error;
@@ -114,8 +127,7 @@ export const generateVideoSpecificScript = async (apiKey: string, video: YouTube
       return response.text || "대본 생성 실패";
     } catch (error: any) {
       const errorMessage = error?.message || "";
-      if (MODELS.indexOf(modelName) < MODELS.length - 1 && 
-          (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("exhausted") || errorMessage.includes("limit"))) {
+      if ((errorMessage.includes("429") || errorMessage.includes("quota")) && MODELS.indexOf(modelName) < MODELS.length - 1) {
         continue;
       }
       throw error;
