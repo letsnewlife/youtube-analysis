@@ -9,16 +9,12 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-// Netlify 환경 변수에서 가져오기
-const domain = (process.env.VITE_AUTH0_DOMAIN || '').trim();
-const clientId = (process.env.VITE_AUTH0_CLIENT_ID || '').trim();
-
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={import.meta.env.VITE_AUTH0_DOMAIN}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: window.location.origin
       }}
