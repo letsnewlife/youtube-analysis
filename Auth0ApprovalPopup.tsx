@@ -26,9 +26,9 @@ export function Auth0ApprovalPopup() {
   }, [error, isLoading]);
 
   const handleConfirm = () => {
-    // 서버 로그아웃을 호출하지 않고 팝업만 닫습니다.
-    // 하지만 App.tsx에서 에러 존재 시 UI 렌더링을 막고 있으므로 사용자는 여전히 앱을 쓸 수 없습니다.
-    setShowModal(false);
+    // 세션을 유지하면서 계정 상태를 재확인하기 위해 새로고침을 실행합니다.
+    // 만약 여전히 차단 상태라면 App.tsx의 ignoreCache: true 로직에 의해 다시 팝업이 뜹니다.
+    window.location.reload();
   };
 
   if (!showModal) return null;
