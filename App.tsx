@@ -26,13 +26,14 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
     return (
       <LandingPage 
         onStart={() => alert("⚠️ Auth0 설정(환경 변수)이 누락되었습니다. VITE_AUTH0_DOMAIN 및 VITE_AUTH0_CLIENT_ID를 확인해주세요.")} 
+        onLogout={() => {}}
       />
     );
   }
 
   const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'landing' | 'youtube_guide' | 'gemini_guide'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
   const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
   const [geminiKey, setGeminiKey] = useState<string>(() => localStorage.getItem('gm_key') || ''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
@@ -59,16 +60,6 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Handle Auth0 access_denied error from URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('error') === 'access_denied') {
-      alert("관리자 승인 후 로그인 가능합니다.");
-      const newUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  }, []);
-  
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -103,9 +94,13 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
     }
   }, [isGeminiValid, result, aiAnalysis, isAiLoading, geminiKey]);
 
+  const handleLogout = () => {
+    logout({ logoutParams: { returnTo: window.location.origin } });
+  };
+
   // 인증되지 않은 경우 랜딩 페이지를 보여줍니다.
   if (!isAuthenticated) {
-    return <LandingPage onStart={() => loginWithRedirect()} />;
+    return <LandingPage onStart={() => loginWithRedirect()} onLogout={handleLogout} />;
   }
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -137,7 +132,6 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   };
 
   const renderContent = () => {
-    if (currentView === 'landing') return <LandingPage onStart={() => setCurrentView('dashboard')} />;
     if (currentView === 'youtube_guide') return <ApiKeyGuide onBack={() => setCurrentView('dashboard')} />;
     if (currentView === 'gemini_guide') return <GeminiKeyGuide onBack={() => setCurrentView('dashboard')} />;
 
@@ -224,7 +218,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
         onShowYoutubeGuide={() => { setCurrentView('youtube_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowGeminiGuide={() => { setCurrentView('gemini_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowDashboard={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
-        onShowLanding={() => { setCurrentView('landing'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
+        onLogout={handleLogout}
       />
       <main className="flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-x-hidden">
         <header className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
