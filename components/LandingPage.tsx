@@ -1,11 +1,15 @@
+
 import React from 'react';
-import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn } from 'lucide-react';
+import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn, LogOut, ArrowRight } from 'lucide-react';
+import { useAuth0 } from '@auth0/auth0-react';
 
 interface LandingPageProps {
   onStart: () => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
+  const { logout, isAuthenticated } = useAuth0();
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 transition-colors overflow-hidden">
       {/* Background decoration */}
@@ -32,11 +36,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             onClick={onStart}
             className="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-950 px-10 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-300 dark:shadow-none"
           >
-            <LogIn className="w-6 h-6" /> 시작하기
+            {isAuthenticated ? <ArrowRight className="w-6 h-6" /> : <LogIn className="w-6 h-6" />}
+            {isAuthenticated ? '대시보드로 이동' : '시작하기'}
           </button>
-          <div className="flex items-center gap-2 px-6 py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
-            <ShieldCheck className="w-5 h-5 text-green-500" /> 구매고객 Only
-          </div>
+          
+          {isAuthenticated && (
+            <button 
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+              className="w-full sm:w-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-red-600 dark:text-red-400 px-10 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg hover:bg-red-50 dark:hover:bg-red-950/20"
+            >
+              <LogOut className="w-6 h-6" /> 로그아웃
+            </button>
+          )}
+          
+          {!isAuthenticated && (
+            <div className="flex items-center gap-2 px-6 py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+              <ShieldCheck className="w-5 h-5 text-green-500" /> 구매고객 Only
+            </div>
+          )}
         </div>
 
         {/* Feature Grid */}
