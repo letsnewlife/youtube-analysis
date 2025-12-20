@@ -49,29 +49,6 @@ const App: React.FC = () => {
     localStorage.setItem('gm_key', geminiKey);
   }, [geminiKey]);
 
-  // 분석 결과가 있는 상태에서 뒤늦게 Gemini API Key가 인증될 경우 자동으로 AI 분석 시작
-  useEffect(() => {
-    if (isGeminiValid && result && !aiAnalysis && !isAiLoading) {
-      const runDelayedAnalysis = async () => {
-        setIsAiLoading(true);
-        try {
-          await analyzeWithGeminiStream(geminiKey, result.keyword, result.metrics, (chunk) => {
-            setAiAnalysis(prev => prev + chunk);
-          });
-        } catch (err) {
-          console.error("Delayed AI Analysis failed:", err);
-        } finally {
-          setIsAiLoading(false);
-        }
-      };
-      runDelayedAnalysis();
-    }
-  }, [isGeminiValid, result, aiAnalysis, geminiKey, isAiLoading]);
-
-  const getCacheKey = (kw: string, f: SearchFilters) => {
-    return `cache_${btoa(encodeURIComponent(kw + JSON.stringify(f)))}`;
-  };
-
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!youtubeKey.trim() || !isYoutubeValid) {
@@ -88,7 +65,7 @@ const App: React.FC = () => {
     setResult(null);
     setAiAnalysis('');
 
-    const cacheKey = getCacheKey(keyword, filters);
+    const cacheKey = `cache_${btoa(encodeURIComponent(keyword + JSON.stringify(filters)))}`;
     const cachedData = localStorage.getItem(cacheKey);
 
     try {
@@ -96,27 +73,30 @@ const App: React.FC = () => {
       
       if (cachedData) {
         finalResult = JSON.parse(cachedData);
-        setResult(finalResult);
       } else {
         const videos = await searchVideos(keyword, youtubeKey, filters);
         if (videos.length === 0) throw new Error("검색 결과가 없습니다.");
         const metrics = calculateMetrics(videos);
         finalResult = { keyword, videos, metrics };
-        setResult(finalResult);
         localStorage.setItem(cacheKey, JSON.stringify(finalResult));
       }
 
-      // 이미 Gemini 키가 인증된 상태라면 즉시 분석 실행
+      // 1. 먼저 검색 결과를 화면에 뿌립니다.
+      setResult(finalResult);
+      setIsLoading(false); // 메인 로딩 종료
+
+      // 2. Gemini 키가 유효하다면 비동기(Background)로 AI 분석을 시작합니다.
       if (geminiKey && isGeminiValid) {
         setIsAiLoading(true);
-        await analyzeWithGeminiStream(geminiKey, keyword, finalResult.metrics, (chunk) => {
+        // 비동기 함수 실행 (await 하지 않음으로써 메인 흐름을 방해하지 않음)
+        analyzeWithGeminiStream(geminiKey, keyword, finalResult.metrics, (chunk) => {
           setAiAnalysis(prev => prev + chunk);
+        }).finally(() => {
+          setIsAiLoading(false);
         });
-        setIsAiLoading(false);
       }
     } catch (err: any) {
       setError(err.message || "오류가 발생했습니다.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -164,7 +144,6 @@ const App: React.FC = () => {
           <div className="animate-fade-in-up space-y-6 md:space-y-10 pb-10">
             <Dashboard metrics={result.metrics} videos={result.videos} keyword={result.keyword} />
             
-            {/* Gemini API 키가 유효할 때만 AI 전략과 대본 작가 노출 */}
             {isGeminiValid && (
               <div className="grid grid-cols-1 gap-6 md:gap-8 xl:grid-cols-2">
                 <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />

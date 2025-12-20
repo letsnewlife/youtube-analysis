@@ -42,8 +42,9 @@ export const analyzeWithGeminiStream = async (
       전문적이고 실행 가능한 톤으로 한국어로 작성해주세요.
     `;
 
+    // 가용성이 더 높고 속도가 빠른 flash 모델 사용
     const result = await ai.models.generateContentStream({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
 
@@ -53,7 +54,7 @@ export const analyzeWithGeminiStream = async (
     }
   } catch (error) {
     console.error("Gemini Streaming Error:", error);
-    onChunk("\n\n[오류] 분석 중 문제가 발생했습니다. API 키나 할당량을 확인해주세요.");
+    onChunk("\n\n[오류] 분석 중 문제가 발생했습니다. API 키의 할당량이나 가용 지역을 확인해주세요.");
   }
 };
 
@@ -63,7 +64,7 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
     const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     const systemInstruction = `당신은 100만 유튜버 메인 작가입니다. 강력한 후킹과 리텐션 설계를 중심으로 대본을 작성하세요.`;
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: userPrompt,
       config: { systemInstruction }
     });
@@ -80,7 +81,7 @@ export const generateVideoSpecificScript = async (apiKey: string, video: YouTube
     const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
     const prompt = `제목: ${video.snippet.title}\n설명: ${video.snippet.description}\n위 정보를 기반으로 리텐션 최적화 대본을 재구성하세요.`;
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
     return response.text || "대본 생성 실패";
