@@ -46,6 +46,16 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
   const labelTextClass = "text-slate-600 dark:text-slate-400 text-lg font-medium";
   const valueTextClass = "font-bold text-slate-900 dark:text-slate-100 text-xl";
 
+
+  const OpportunityTooltip = ({ title, formula, desc }: { title: string, formula: string, desc: string }) => (
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block bg-slate-900 dark:bg-black text-white p-4 rounded-xl z-[100] w-80 shadow-2xl border border-slate-700 dark:border-slate-800 transition-all animate-fade-in text-left">
+      <div className="font-black text-blue-400 mb-1 text-base">{title}</div>
+      <div className="font-black text-[12px] text-slate-300 border-b border-slate-700 dark:border-slate-800 pb-2 mb-2">{formula}</div>
+      <p className="text-[11px] text-slate-300 leading-relaxed font-medium">{desc}</p>
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900 dark:border-t-black"></div>
+    </div>
+  );
+
   return (
     <div className="mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -158,7 +168,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
             </div>
         </div>
 
-        {/* Card 4: Opportunity (VPH & Ratios) */}
+        {/* Card 4: Opportunity (Updated with Tooltips) */}
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-1">
@@ -170,9 +180,12 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
             
             {/* 1. VPH */}
             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 dark:text-slate-400 text-base font-bold flex items-center gap-1">
-                  시간당 조회수
-                </span>
+                <OpportunityTooltip 
+                  title="VPH (시간당 조회수)"
+                  formula="전체 조회수 / 게시 후 경과 시간(h)"
+                  desc="영상이 현재 실시간으로 얼마나 빠르게 소비되고 있는지를 나타냅니다. 높을수록 현재 트렌디한 주제임을 의미합니다."
+                />
+                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">시간당 조회수(VPH)</span>
                 <span className="font-black text-slate-900 dark:text-slate-100 text-xl">{formatNumber(metrics.avgViewsPerHour)}</span>
             </div>
 
@@ -180,28 +193,34 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
 
             {/* 2. Engagement Rate */}
             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 dark:text-slate-400 text-base font-bold flex items-center gap-1">
-                  평균 참여율
-                </span>
+                <OpportunityTooltip 
+                  title="평균 참여율 (Engagement)"
+                  formula="(좋아요 + 댓글) / 조회수 × 100"
+                  desc="시청자가 영상에 얼마나 깊게 반응했는지를 보여줍니다."
+                />
+                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">평균 참여율</span>
                 <span className="font-bold text-purple-600 dark:text-purple-400 text-xl">{metrics.engagementRate.toFixed(2)}%</span>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-slate-800 dark:bg-black text-white text-xs p-2 rounded w-48 z-10 text-center shadow-lg">
-                  참여율 : (좋아요+댓글)/조회수
-                </div>
             </div>
 
             {/* 3. Like / View Ratio */}
              <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 dark:text-slate-400 text-base font-bold flex items-center gap-1">
-                  좋아요 / 조회수 비율
-                </span>
+                <OpportunityTooltip 
+                  title="L/V (좋아요/조회수 비율)"
+                  formula="좋아요 수 / 전체 조회수 × 100"
+                  desc="콘텐츠의 순수 만족도를 나타냅니다. 높을수록 시청자 만족도가 높은 양질의 콘텐츠입니다."
+                />
+                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">좋아요/조회수 비율(L/V)((spann
                 <span className="font-bold text-blue-600 dark:text-blue-400 text-xl">{metrics.avgLikeToViewRatio.toFixed(1)}%</span>
             </div>
 
             {/* 4. View / Sub Ratio */}
             <div className="flex justify-between items-center group relative cursor-help">
-                <span className="text-slate-600 dark:text-slate-400 text-base font-bold flex items-center gap-1">
-                  조회수 / 구독자 비율
-                </span>
+                <OpportunityTooltip 
+                  title="V/S (조회수/구독자 비율)"
+                  formula="전체 조회수 / 채널 구독자 수 × 100"
+                  desc="바이럴 파워를 측정합니다. 100% 이상인 경우 구독자뿐만 아닌 외부 유입(떡상)이 강력하게 일어났음을 뜻합니다."
+                />
+                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">조회수/구독자 비율(V/S)</span>
                 <span className={`font-bold text-xl ${(metrics.avgViews / metrics.avgSubscribers) > 1 ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-500'}`}>
                   {metrics.avgSubscribers > 0 ? (metrics.avgViews / metrics.avgSubscribers * 100).toFixed(0) : 0}%
                 </span>
