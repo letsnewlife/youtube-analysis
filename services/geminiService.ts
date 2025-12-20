@@ -14,27 +14,6 @@ const MODELS = [
   'gemini-flash-lite-latest'
 ];
 
-/**
- * API 키 유효성 검사
- * 사용자가 사이드바에서 [확인] 버튼을 직접 눌렀을 때만 호출됩니다.
- * 'ping'이라는 단 한 단어와 maxOutputTokens: 1 설정을 통해 토큰 소모를 극소화합니다.
- */
-export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
-  if (!apiKey || !apiKey.trim()) return false;
-  try {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-    await ai.models.generateContent({
-      model: MODELS[0],
-      contents: 'ping',
-      config: { maxOutputTokens: 1 }
-    });
-    return true;
-  } catch (error) {
-    console.error("Gemini Verification Error:", error);
-    return false;
-  }
-};
-
 export const analyzeWithGeminiStream = async (
   apiKey: string,
   keyword: string,
@@ -104,30 +83,7 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
       return response.text || "대본 생성 실패";
     } catch (error: any) {
       const errorMessage = error?.message || "";
-      if ((errorMessage.includes("429") || errorMessage.includes("quota")) && MODELS.indexOf(modelName) < MODELS.length - 1) {
-        continue;
-      }
-      throw error;
-    }
-  }
-  return "대본 생성 실패";
-};
-
-export const generateVideoSpecificScript = async (apiKey: string, video: YouTubeVideo): Promise<string> => {
-  if (!apiKey) throw new Error("API Key missing");
-  const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-  const prompt = `제목: ${video.snippet.title}\n설명: ${video.snippet.description}\n위 정보를 기반으로 리텐션 최적화 대본을 재구성하세요.`;
-
-  for (const modelName of MODELS) {
-    try {
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: prompt,
-      });
-      return response.text || "대본 생성 실패";
-    } catch (error: any) {
-      const errorMessage = error?.message || "";
-      if ((errorMessage.includes("429") || errorMessage.includes("quota")) && MODELS.indexOf(modelName) < MODELS.length - 1) {
+      if ((errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("exhausted") || errorMessage.includes("limit")) && MODELS.indexOf(modelName) < MODELS.length - 1) {
         continue;
       }
       throw error;
