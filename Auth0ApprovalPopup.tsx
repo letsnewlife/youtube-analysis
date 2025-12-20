@@ -23,8 +23,7 @@ export function Auth0ApprovalPopup() {
 
   const handleConfirm = () => {
     setShowModal(false);
-    });
-  };
+    }
 
   if (!showModal) return null;
 
