@@ -21,16 +21,17 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ configError = false }) => {
+  // 설정 오류가 있는 경우 Auth0 훅을 호출하지 않고 바로 랜딩 페이지를 리턴합니다.
   if (configError) {
     return (
       <LandingPage 
-        onStart={() => alert("⚠️ Auth0 설정이 누락되었습니다.")} 
+        onStart={() => alert("⚠️ Auth0 설정(환경 변수)이 누락되었습니다. VITE_AUTH0_DOMAIN 및 VITE_AUTH0_CLIENT_ID를 확인해주세요.")} 
         onLogout={() => {}}
       />
     );
   }
 
-  const { isAuthenticated, loginWithRedirect, logout, getAccessTokenSilently, error: authError, isLoading: authLoading } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
   const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
@@ -39,8 +40,17 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>('');
   const [filters, setFilters] = useState<SearchFilters>({
-    order: 'relevance', videoDuration: 'any', publishedAfter: '', publishedBefore: '',
-    minViews: 0, maxViews: 0, maxResults: 30, minSubscribers: 0, maxSubscribers: 0, minViewToSubRatio: 0, minVPH: 0,
+    order: 'relevance', 
+    videoDuration: 'any',
+    publishedAfter: '',
+    publishedBefore: '',
+    minViews: 0,
+    maxViews: 0,
+    maxResults: 30,
+    minSubscribers: 0,
+    maxSubscribers: 0,
+    minViewToSubRatio: 0,
+    minVPH: 0,
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -50,34 +60,35 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 세션 실시간 동기화: ignoreCache를 통해 로컬 스토리지에 토큰이 있어도 서버에 계정 상태를 묻습니다.
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      getAccessTokenSilently({ ignoreCache: true }).catch(err => {
-        console.warn("Real-time Session Validation Failed:", err);
-        // 여기서 에러가 발생하면 useAuth0의 authError 상태가 업데이트되어 팝업이 뜹니다.
-      });
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, [isAuthenticated, authLoading, getAccessTokenSilently]);
-
-  useEffect(() => {
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  useEffect(() => { localStorage.setItem('yt_key', youtubeKey); }, [youtubeKey]);
-  useEffect(() => { localStorage.setItem('gm_key', geminiKey); }, [geminiKey]);
+  useEffect(() => {
+    localStorage.setItem('yt_key', youtubeKey);
+  }, [youtubeKey]);
+
+  useEffect(() => {
+    localStorage.setItem('gm_key', geminiKey);
+  }, [geminiKey]);
 
   useEffect(() => {
     if (result && isGeminiValid && !aiAnalysis && !isAiLoading && geminiKey) {
       const startAiAnalysis = async () => {
-        setAiAnalysis(''); setIsAiLoading(true);
+        setAiAnalysis('');
+        setIsAiLoading(true);
         try {
           await analyzeWithGeminiStream(geminiKey, result.keyword, result.metrics, (chunk) => {
             setAiAnalysis(prev => prev + chunk);
           });
-        } finally { setIsAiLoading(false); }
+        } finally {
+          setIsAiLoading(false);
+        }
       };
       startAiAnalysis();
     }
@@ -87,18 +98,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
     logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
-  // 1. 아직 로딩 중이면 대기
-  if (authLoading) {
-    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-600" /></div>;
-  }
-
-  // 2. 인증 에러가 있는 경우 (차단됨/승인취소됨) 대시보드 진입 원천 차단
-  const hasAuthError = !!authError;
-  if (isAuthenticated && hasAuthError) {
-    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" />; // Auth0ApprovalPopup이 위에 뜰 것임
-  }
-
-  // 3. 비인증 상태면 랜딩 페이지
+  // 인증되지 않은 경우 랜딩 페이지를 보여줍니다.
   if (!isAuthenticated) {
     return <LandingPage onStart={() => loginWithRedirect()} onLogout={handleLogout} />;
   }
