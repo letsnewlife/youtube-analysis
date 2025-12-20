@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { Auth0ApprovalPopup } from "./Auth0ApprovalPopup";
 import App from './App.js';
 
 const rootElement = document.getElementById('root');
@@ -51,9 +52,9 @@ if (!domain || !clientId) {
         clientId={clientId}
         authorizationParams={{
           redirect_uri: window.location.origin
-        }}
-        cacheLocation="localstorage"
-      >
+        }} 
+    >
+    <Auth0ApprovalPopup />
         <App />
       </Auth0Provider>
     </React.StrictMode>
