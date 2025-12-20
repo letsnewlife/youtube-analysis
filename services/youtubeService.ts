@@ -31,7 +31,7 @@ export const searchVideos = async (
   const validVideos: YouTubeVideo[] = [];
   let nextPageToken = '';
   let loopCount = 0;
-  const MAX_LOOPS = 4; // Quota safety
+  const MAX_LOOPS = 4;
 
   while (validVideos.length < filters.maxResults && loopCount < MAX_LOOPS) {
     loopCount++;
@@ -40,6 +40,7 @@ export const searchVideos = async (
     
     if (filters.videoDuration !== 'any') searchUrl += `&videoDuration=${filters.videoDuration}`;
     if (filters.publishedAfter) searchUrl += `&publishedAfter=${new Date(filters.publishedAfter).toISOString()}`;
+    if (filters.publishedBefore) searchUrl += `&publishedBefore=${new Date(filters.publishedBefore).toISOString()}`;
     if (nextPageToken) searchUrl += `&pageToken=${nextPageToken}`;
 
     const searchResponse = await fetch(searchUrl);
@@ -65,7 +66,6 @@ export const searchVideos = async (
       continue;
     }
 
-    // Optimization: Parallel Fetching for details
     const videoIdChunks = chunkArray(videoIds, 50);
     const videosDetailsResponses = await Promise.all(
       videoIdChunks.map(chunk => 
@@ -132,7 +132,6 @@ export const searchVideos = async (
     if (!nextPageToken) break;
   }
 
-  // Parallel Comment Fetching for top videos
   const commentLimit = Math.min(validVideos.length, 15);
   const commentResults = await Promise.all(
     validVideos.slice(0, commentLimit).map(async (video) => {
@@ -176,7 +175,6 @@ export const calculateMetrics = (videos: YouTubeVideo[]): AnalysisMetrics => {
   const avgSubscribers = validSubCount > 0 ? totalSubscribers / validSubCount : 0;
   const engagementRate = avgViews > 0 ? ((totalLikes / videos.length + totalComments / videos.length) / avgViews) * 100 : 0;
 
-  // 시장 규모 판정
   let marketSizeLevel: AnalysisMetrics['marketSizeLevel'] = 'Tiny';
   if (avgViews > 2000000) marketSizeLevel = 'Mega';
   else if (avgViews > 1000000) marketSizeLevel = 'Huge';
@@ -184,22 +182,10 @@ export const calculateMetrics = (videos: YouTubeVideo[]): AnalysisMetrics => {
   else if (avgViews > 100000) marketSizeLevel = 'Medium';
   else if (avgViews > 10000) marketSizeLevel = 'Small';
 
-  /**
-   * 진입 난이도 산식 개선 로직
-   * 1. 채널 파워(구독자): 구독자가 많을수록 진입 장벽이 높음 (log scale 사용)
-   * 2. 바이럴 지수(조회수/구독자): 구독자 대비 조회수가 높게 나오는 시장은 작은 채널도 떡상 가능성이 높으므로 난이도를 낮춤
-   */
   const safeAvgSubs = Math.max(avgSubscribers, 100); 
-  // 기본 채널 파워 점수 (0~100, 10M 구독자 기준)
   const channelPowerScore = (Math.log10(safeAvgSubs) / 7) * 100;
-  
-  // 바이럴 지수 보정 (Opportunity Factor)
-  // 바이럴 지수가 1보다 크면(구독자보다 많은 조회수), 작은 채널에게 기회가 있는 시장
   const viralRatio = avgSubscribers > 0 ? avgViews / avgSubscribers : 1;
-  // 바이럴 보정값: 바이럴 지수가 10배일 때 약 25점의 난이도 하락 효과를 줌
   const viralAdjustment = Math.log10(Math.max(viralRatio, 0.1)) * 25;
-  
-  // 최종 점수 = 장벽 점수 - 기회 점수
   const difficultyScore = Math.max(1, Math.min(99, Math.round(channelPowerScore - viralAdjustment)));
 
   let difficultyLevel: AnalysisMetrics['difficultyLevel'] = 'Medium';

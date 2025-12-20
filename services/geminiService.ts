@@ -42,7 +42,6 @@ export const analyzeWithGeminiStream = async (
       전문적이고 실행 가능한 톤으로 한국어로 작성해주세요.
     `;
 
-    // 가용성이 더 높고 속도가 빠른 flash 모델 사용
     const result = await ai.models.generateContentStream({
       model: 'gemini-3-flash-preview',
       contents: prompt,

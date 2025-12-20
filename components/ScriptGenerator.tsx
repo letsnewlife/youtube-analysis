@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, Loader2, Wand2, Edit } from 'lucide-react';
 import { generateVideoScript } from '../services/geminiService';
@@ -32,7 +33,6 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
   }, [keyword]);
 
   const handleGenerate = async () => {
-    // Strictly use provided geminiKey
     if (!geminiKey) {
       setError("Gemini API Key가 필요합니다. 좌측 사이드바에서 설정해주세요.");
       return;
@@ -68,15 +68,15 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm mb-8 flex flex-col h-[400px]">
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-8 flex flex-col h-[400px] transition-colors">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 shrink-0">
         <div className="flex items-center space-x-2">
-           <div className="bg-purple-100 p-2 rounded-full">
-            <Edit className="w-5 h-5 text-purple-600" />
+           <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+            <Edit className="w-5 h-5 text-purple-600 dark:text-purple-400" />
            </div>
            <div>
-             <h3 className="font-bold text-slate-800">AI 대본 작가</h3>
-             <p className="text-xs text-slate-500">100만 유튜버 메인 작가 페르소나가 적용되었습니다.</p>
+             <h3 className="font-bold text-slate-800 dark:text-slate-100">AI 대본 작가</h3>
+             <p className="text-xs text-slate-500 dark:text-slate-500">100만 유튜버 메인 작가 페르소나가 적용되었습니다.</p>
            </div>
         </div>
         
@@ -93,7 +93,7 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
           <button 
             onClick={handleDownload} 
             disabled={!script}
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs transition-colors disabled:opacity-50 disabled:bg-slate-300"
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs transition-colors disabled:opacity-50 disabled:bg-slate-300 dark:disabled:bg-slate-800"
           >
             <Download className="w-3.5 h-3.5" />
             <span>저장</span>
@@ -101,13 +101,13 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
         </div>
       </div>
 
-      {error && <p className="text-red-500 text-xs mb-2 bg-red-50 p-2 rounded border border-red-100 shrink-0">{error}</p>}
+      {error && <p className="text-red-500 dark:text-red-400 text-xs mb-2 bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-900 shrink-0 transition-colors">{error}</p>}
 
       <div className="relative flex-1 overflow-hidden">
         <textarea
             value={script}
             onChange={(e) => setScript(e.target.value)}
-            className="w-full h-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm leading-relaxed resize-none font-sans text-slate-700 font-medium overflow-y-auto scrollbar-thin scrollbar-thumb-purple-200"
+            className="w-full h-full p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-600 text-sm leading-relaxed resize-none font-sans text-slate-700 dark:text-slate-300 font-medium overflow-y-auto scrollbar-thin scrollbar-thumb-purple-200 dark:scrollbar-thumb-purple-900 transition-colors"
             placeholder="기획 내용을 입력하세요..."
         />
       </div>

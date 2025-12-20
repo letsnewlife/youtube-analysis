@@ -1,3 +1,4 @@
+
 export interface YouTubeVideoSnippet {
   publishedAt: string;
   channelId: string;
@@ -34,25 +35,25 @@ export interface YouTubeVideo {
   statistics: YouTubeVideoStatistics;
   contentDetails: YouTubeVideoContentDetails;
   channelStatistics?: YouTubeChannelStatistics;
-  comments?: string[]; // Changed from topComment to array
-  // Computed metrics
+  comments?: string[];
   viewsPerHour: number;
-  likeToViewRatio: number; // percentage
-  likeToSubRatio: number; // percentage
-  viewToSubRatio: number; // percentage (Views / Subs * 100) - New Metric for Competition
+  likeToViewRatio: number;
+  likeToSubRatio: number;
+  viewToSubRatio: number;
 }
 
 export interface SearchFilters {
   order: 'relevance' | 'date' | 'viewCount' | 'rating';
   videoDuration: 'any' | 'short' | 'medium' | 'long';
   publishedAfter: string;
+  publishedBefore: string;
   minViews: number;
   maxViews: number;
   maxResults: number;
   minSubscribers: number;
   maxSubscribers: number;
   minViewToSubRatio: number;
-  minVPH: number; // New Filter: Minimum Views Per Hour
+  minVPH: number;
 }
 
 export interface AnalysisMetrics {
@@ -62,19 +63,13 @@ export interface AnalysisMetrics {
   avgLikes: number;
   avgComments: number;
   avgSubscribers: number;
-  
-  // Performance Metrics
   avgViewsPerHour: number;
   avgLikeToViewRatio: number;
   avgLikeToSubRatio: number;
-  
   engagementRate: number; 
-  
   marketSizeLevel: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Mega';
-  
   difficultyScore: number; 
   difficultyLevel: 'Easy' | 'Medium' | 'Hard' | 'Extreme';
-  
   topTags: string[];
 }
 

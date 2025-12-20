@@ -1,5 +1,5 @@
 {
-  "name": "유투브 키워드 분석기",
-  "description": "A YouTube keyword analysis tool that provides search volume estimates, competition metrics, and AI-powered content strategy advice using the Gemini API.",
+  "name": "유튜브 키워드 마스터",
+  "description": "YouTube 데이터 분석 및 Gemini AI 기반 콘텐츠 전략 수립 도구",
   "requestFramePermissions": []
 }
