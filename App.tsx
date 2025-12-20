@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Search, Loader2, Menu, ShieldCheck } from 'lucide-react';
@@ -29,9 +30,9 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
     );
   }
 
-  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'landing' | 'youtube_guide' | 'gemini_guide'>('dashboard');
   const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
   const [geminiKey, setGeminiKey] = useState<string>(() => localStorage.getItem('gm_key') || ''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
@@ -57,6 +58,16 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Handle Auth0 access_denied error from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'access_denied') {
+      alert("관리자 승인 후 로그인 가능합니다.");
+      const newUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
   
   useEffect(() => {
     if (theme === 'dark') {
@@ -126,6 +137,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   };
 
   const renderContent = () => {
+    if (currentView === 'landing') return <LandingPage onStart={() => setCurrentView('dashboard')} />;
     if (currentView === 'youtube_guide') return <ApiKeyGuide onBack={() => setCurrentView('dashboard')} />;
     if (currentView === 'gemini_guide') return <GeminiKeyGuide onBack={() => setCurrentView('dashboard')} />;
 
@@ -212,6 +224,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
         onShowYoutubeGuide={() => { setCurrentView('youtube_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowGeminiGuide={() => { setCurrentView('gemini_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowDashboard={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
+        onShowLanding={() => { setCurrentView('landing'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
       />
       <main className="flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-x-hidden">
         <header className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
