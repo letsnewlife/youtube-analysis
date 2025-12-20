@@ -2,7 +2,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Auth0Provider } from '@auth0/auth0-react';
-import { Auth0ApprovalGuard } from "./Auth0ApprovalGuard";
 import App from './App.js';
 
 const rootElement = document.getElementById('root');
