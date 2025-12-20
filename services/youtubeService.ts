@@ -31,7 +31,7 @@ export const searchVideos = async (
   const validVideos: YouTubeVideo[] = [];
   let nextPageToken = '';
   let loopCount = 0;
-  const MAX_LOOPS = 4;
+  const MAX_LOOPS = 5;
 
   while (validVideos.length < filters.maxResults && loopCount < MAX_LOOPS) {
     loopCount++;
