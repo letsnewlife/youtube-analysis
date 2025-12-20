@@ -21,6 +21,14 @@
       ::selection {
         background-color: rgba(59, 130, 246, 0.2);
       }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
+      }
     </style>
   <script type="importmap">
 {
@@ -29,7 +37,8 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.33.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "@auth0/auth0-react": "https://esm.sh/@auth0/auth0-react@^2.2.4"
   }
 }
 </script>
