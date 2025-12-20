@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon, LogOut } from 'lucide-react';
 import { verifyYoutubeApi } from '../services/youtubeService';
-import { verifyGeminiApi } from '../services/geminiService';
 
 interface SidebarProps {
   theme: 'light' | 'dark';
@@ -31,7 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogout
 }) => {
   const [youtubeStatus, setYoutubeStatus] = useState<VerificationStatus>('idle');
-  const [geminiStatus, setGeminiStatus] = useState<VerificationStatus>('idle');
   
   // Desktop collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -43,9 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleGeminiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGeminiKey(e.target.value);
-    setGeminiStatus('idle');
-    setIsGeminiValid(false);
+    const val = e.target.value;
+    setGeminiKey(val);
+    // 글자가 있으면 즉시 유효한 것으로 간주
+    setIsGeminiValid(!!val.trim());
   };
 
   const verifyYoutube = async () => {
@@ -54,14 +53,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     const isValid = await verifyYoutubeApi(youtubeKey);
     setYoutubeStatus(isValid ? 'valid' : 'invalid');
     setIsYoutubeValid(isValid);
-  };
-
-  const verifyGemini = async () => {
-    if (!geminiKey.trim()) return;
-    setGeminiStatus('validating');
-    const isValid = await verifyGeminiApi(geminiKey);
-    setGeminiStatus(isValid ? 'valid' : 'invalid');
-    setIsGeminiValid(isValid);
   };
 
   const renderVerificationIcon = (status: VerificationStatus, verifyFn: () => void) => {
@@ -258,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                  {isCollapsed ? (
                     <div className="flex justify-center">
-                        <Bot className={`w-7 h-7 ${geminiStatus === 'valid' ? 'text-purple-500' : 'text-slate-400 dark:text-slate-600'}`} />
+                        <Bot className={`w-7 h-7 ${geminiKey.trim() ? 'text-purple-500' : 'text-slate-400 dark:text-slate-600'}`} />
                     </div>
                 ) : (
                     <>
@@ -269,15 +260,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                               value={geminiKey}
                               onChange={handleGeminiChange}
                               placeholder="Key 입력"
-                              className={`w-full pl-3 pr-12 py-2.5 border rounded text-sm focus:outline-none focus:ring-1 transition-shadow ${
-                                  geminiStatus === 'valid' ? 'border-purple-300 bg-purple-50 dark:bg-purple-900/10' : 
-                                  geminiStatus === 'invalid' ? 'border-red-300 bg-red-50 dark:bg-red-900/10' :
-                                  'border-slate-300 dark:border-slate-700 bg-transparent text-slate-800 dark:text-slate-100'
-                              }`}
+                              className="w-full pl-3 pr-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded text-sm focus:outline-none focus:ring-1 bg-transparent text-slate-800 dark:text-slate-100 transition-shadow"
                             />
-                            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                                {renderVerificationIcon(geminiStatus, verifyGemini)}
-                            </div>
                         </div>
                          <div className="mt-2.5 flex justify-end">
                              <button 
