@@ -1,13 +1,9 @@
+import { Auth0Provider } from "@auth0/auth0-react";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.js";
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { Auth0Provider } from '@auth0/auth0-react';
-import App from './App.js';
-
-const root = document.getElementById('root') as HTMLElement;
-if (!root) {
-  throw new Error("Could not find root element to mount to");
-}
+const root = document.getElementById("root") as HTMLElement;
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>

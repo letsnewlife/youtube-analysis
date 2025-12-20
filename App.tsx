@@ -17,10 +17,11 @@ import { analyzeWithGeminiStream } from './services/geminiService';
 import { AnalysisResult, SearchFilters } from './types';
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
   
+  // States initialized but only persisted/used after authentication
   const [youtubeKey, setYoutubeKey] = useState<string>('');
   const [geminiKey, setGeminiKey] = useState<string>(''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
@@ -47,6 +48,7 @@ const App: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Load keys only after authentication
   useEffect(() => {
     if (isAuthenticated) {
       setYoutubeKey(localStorage.getItem('yt_key') || '');
@@ -92,6 +94,7 @@ const App: React.FC = () => {
     }
   }, [isGeminiValid, result, aiAnalysis, isAiLoading, geminiKey]);
 
+  // Auth0 로딩 상태 처리
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center gap-6 transition-colors">
@@ -105,16 +108,16 @@ const App: React.FC = () => {
     );
   }
 
+  // 인증되지 않은 경우 랜딩 페이지 표시
   if (!isAuthenticated) {
     return <LandingPage />;
   }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      loginWithRedirect();
-      return;
-    }
+    
+    // Safety check for authentication before API calls
+    if (!isAuthenticated) return;
 
     if (!youtubeKey.trim() || !isYoutubeValid) {
       setError("유효한 YouTube API Key를 먼저 설정하고 [확인] 버튼을 눌러주세요.");
