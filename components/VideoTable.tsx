@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { YouTubeVideo, SearchFilters } from '../types';
 import { Loader2, ChevronLeft, ChevronRight, ExternalLink, Calendar, Subtitles, Download, Wand2, Search, SortAsc, SortDesc, ZoomIn } from 'lucide-react';
-import { generateVideoSpecificScript } from '../services/geminiService';
 
 interface VideoTableProps {
   videos: YouTubeVideo[];
