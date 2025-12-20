@@ -5,10 +5,9 @@ import { generateVideoScript } from '../services/geminiService';
 
 interface ScriptGeneratorProps {
   keyword: string;
-  geminiKey: string;
 }
 
-const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey }) => {
+const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword }) => {
   const [script, setScript] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +32,6 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
   }, [keyword]);
 
   const handleGenerate = async () => {
-    if (!geminiKey) {
-      setError("Gemini API Key가 필요합니다. 좌측 사이드바에서 설정해주세요.");
-      return;
-    }
-    
     if (!script.trim()) {
       setError("대본 작성을 위한 내용을 입력해주세요.");
       return;
@@ -46,10 +40,10 @@ const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ keyword, geminiKey })
     setIsLoading(true);
     setError(null);
     try {
-      const generatedScript = await generateVideoScript(geminiKey, script);
+      const generatedScript = await generateVideoScript(script);
       setScript(generatedScript);
     } catch (err) {
-      setError("대본 생성 중 오류가 발생했습니다. API 키를 확인해주세요.");
+      setError("대본 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
     }

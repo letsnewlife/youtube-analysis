@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon, LogOut, User } from 'lucide-react';
 import { verifyYoutubeApi } from '../services/youtubeService';
-import { verifyGeminiApi } from '../services/geminiService';
 
 interface SidebarProps {
   theme: 'light' | 'dark';
@@ -11,13 +10,9 @@ interface SidebarProps {
   youtubeKey: string;
   setYoutubeKey: (key: string) => void;
   setIsYoutubeValid: (valid: boolean) => void;
-  geminiKey: string;
-  setGeminiKey: (key: string) => void;
-  setIsGeminiValid: (valid: boolean) => void;
   isOpen: boolean; // Mobile open state
   onClose: () => void; // Mobile close handler
   onShowYoutubeGuide: () => void; // Show YouTube Guide
-  onShowGeminiGuide: () => void; // Show Gemini Guide
   onShowDashboard: () => void; // Go back to dashboard
 }
 
@@ -26,12 +21,10 @@ type VerificationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 const Sidebar: React.FC<SidebarProps> = ({ 
   theme, setTheme,
   youtubeKey, setYoutubeKey, setIsYoutubeValid,
-  geminiKey, setGeminiKey, setIsGeminiValid,
-  isOpen, onClose, onShowYoutubeGuide, onShowGeminiGuide, onShowDashboard
+  isOpen, onClose, onShowYoutubeGuide, onShowDashboard
 }) => {
   const { user, logout } = useAuth0();
   const [youtubeStatus, setYoutubeStatus] = useState<VerificationStatus>('idle');
-  const [geminiStatus, setGeminiStatus] = useState<VerificationStatus>('idle');
   
   // Desktop collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -42,26 +35,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     setIsYoutubeValid(false);
   };
 
-  const handleGeminiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGeminiKey(e.target.value);
-    setGeminiStatus('idle');
-    setIsGeminiValid(false);
-  };
-
   const verifyYoutube = async () => {
     if (!youtubeKey.trim()) return;
     setYoutubeStatus('validating');
     const isValid = await verifyYoutubeApi(youtubeKey);
     setYoutubeStatus(isValid ? 'valid' : 'invalid');
     setIsYoutubeValid(isValid);
-  };
-
-  const verifyGemini = async () => {
-    if (!geminiKey.trim()) return;
-    setGeminiStatus('validating');
-    const isValid = await verifyGeminiApi(geminiKey);
-    setGeminiStatus(isValid ? 'valid' : 'invalid');
-    setIsGeminiValid(isValid);
   };
 
   const renderVerificationIcon = (status: VerificationStatus, verifyFn: () => void) => {
@@ -246,50 +225,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </div>
               </div>
-                                     
-
-              {/* Gemini Key Input */}
-              <div className="relative">
-                 {!isCollapsed && (
-                    <label htmlFor="gemini-key" className="block text-sm font-black text-slate-700 dark:text-slate-300 mb-2 leading-tight whitespace-normal break-words">
-                      Gemini API Key
-                    </label>
-                 )}
-
-                 {isCollapsed ? (
-                    <div className="flex justify-center">
-                        <Bot className={`w-7 h-7 ${geminiStatus === 'valid' ? 'text-purple-500' : 'text-slate-400 dark:text-slate-600'}`} />
-                    </div>
-                ) : (
-                    <>
-                        <div className="relative">
-                            <input
-                              id="gemini-key"
-                              type="password"
-                              value={geminiKey}
-                              onChange={handleGeminiChange}
-                              placeholder="Key 입력"
-                              className={`w-full pl-3 pr-12 py-2.5 border rounded text-sm focus:outline-none focus:ring-1 transition-shadow ${
-                                  geminiStatus === 'valid' ? 'border-purple-300 bg-purple-50 dark:bg-purple-900/10' : 
-                                  geminiStatus === 'invalid' ? 'border-red-300 bg-red-50 dark:bg-red-900/10' :
-                                  'border-slate-300 dark:border-slate-700 bg-transparent text-slate-800 dark:text-slate-100'
-                              }`}
-                            />
-                            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                                {renderVerificationIcon(geminiStatus, verifyGemini)}
-                            </div>
-                        </div>
-                         <div className="mt-2.5 flex justify-end">
-                             <button 
-                                onClick={onShowGeminiGuide}
-                                className="text-sm text-purple-600 dark:text-purple-400 hover:underline font-black flex items-center gap-1 leading-tight text-right transition-colors"
-                             >
-                                <BookOpen className="w-3.5 h-3.5 shrink-0" /> 발급 가이드
-                             </button>
-                        </div>
-                    </>
-                )}
-              </div>
             </div>
           </div>
 
@@ -320,8 +255,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex gap-2.5 items-start">
                   <span className="shrink-0 text-blue-600 dark:text-blue-400 font-black text-xs mt-0.5">•</span>
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-snug break-words">
-                    2. Gemini API Key 입력<br />
-                    <span className="text-slate-500 dark:text-slate-500 font-medium block mt-0.5">(AI 전략 및 대본 생성용)</span>
+                    2. AI 분석 기능 자동 연동<br />
+                    <span className="text-slate-500 dark:text-slate-500 font-medium block mt-0.5">(전략 및 대본 생성 준비 완료)</span>
                   </p>
                 </div>
 

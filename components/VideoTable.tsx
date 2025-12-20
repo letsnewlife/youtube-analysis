@@ -6,8 +6,6 @@ import { generateVideoSpecificScript } from '../services/geminiService';
 
 interface VideoTableProps {
   videos: YouTubeVideo[];
-  geminiKey: string;
-  isGeminiValid: boolean;
   keyword?: string;
   filters?: SearchFilters;
 }
@@ -36,7 +34,7 @@ const getDurationSeconds = (isoDuration: string): number => {
   return h * 3600 + m * 60 + s;
 };
 
-const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiValid, keyword = "youtube_analysis", filters }) => {
+const VideoTable: React.FC<VideoTableProps> = ({ videos, keyword = "youtube_analysis", filters }) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
@@ -134,13 +132,9 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
   };
 
   const handleGenerateScript = async (video: YouTubeVideo) => {
-    if (!geminiKey || !isGeminiValid) {
-      alert("유효한 Gemini API Key가 확인되지 않았습니다.");
-      return;
-    }
     setGeneratingId(video.id);
     try {
-      const script = await generateVideoSpecificScript(geminiKey, video);
+      const script = await generateVideoSpecificScript(video);
       const element = document.createElement("a");
       const file = new Blob([script], { type: 'text/plain' });
       element.href = URL.createObjectURL(file);
@@ -454,7 +448,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       </td>
                       <td className="px-3 py-3 text-center align-top space-y-2">
                         <a href={`https://downsub.com/?url=https://youtu.be/${video.id}`} target="_blank" className="flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-2 py-1.5 rounded-md text-[12px] font-black transition-colors"><Subtitles className="w-3.5 h-3.5 mr-1" />자막</a>
-                        <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id || !isGeminiValid} className="flex items-center justify-center w-full bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800 px-2 py-1.5 rounded-md text-[12px] font-black active:scale-95 disabled:opacity-50 transition-all">
+                        <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id} className="flex items-center justify-center w-full bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800 px-2 py-1.5 rounded-md text-[12px] font-black active:scale-95 disabled:opacity-50 transition-all">
                           {generatingId === video.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5 mr-1" />}AI창작
                         </button>
                       </td>

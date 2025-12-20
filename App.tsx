@@ -10,22 +10,18 @@ import TagList from './components/TagList';
 import ScriptGenerator from './components/ScriptGenerator';
 import SearchFiltersComponent from './components/SearchFilters';
 import ApiKeyGuide from './components/ApiKeyGuide';
-import GeminiKeyGuide from './components/GeminiKeyGuide';
 import LandingPage from './components/LandingPage';
 import { searchVideos, calculateMetrics } from './services/youtubeService';
 import { analyzeWithGeminiStream } from './services/geminiService';
 import { AnalysisResult, SearchFilters } from './types';
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth0();
+  const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
-  const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide'>('dashboard');
   
-  // States initialized but only persisted/used after authentication
   const [youtubeKey, setYoutubeKey] = useState<string>('');
-  const [geminiKey, setGeminiKey] = useState<string>(''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
-  const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>('');
   const [filters, setFilters] = useState<SearchFilters>({
     order: 'relevance', 
@@ -48,11 +44,9 @@ const App: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Load keys only after authentication
   useEffect(() => {
     if (isAuthenticated) {
       setYoutubeKey(localStorage.getItem('yt_key') || '');
-      setGeminiKey(localStorage.getItem('gm_key') || '');
     }
   }, [isAuthenticated]);
 
@@ -72,18 +66,13 @@ const App: React.FC = () => {
   }, [youtubeKey, isAuthenticated]);
 
   useEffect(() => {
-    if (isAuthenticated && geminiKey) {
-      localStorage.setItem('gm_key', geminiKey);
-    }
-  }, [geminiKey, isAuthenticated]);
-
-  useEffect(() => {
-    if (result && isGeminiValid && !aiAnalysis && !isAiLoading && geminiKey) {
+    // Gemini analysis starts automatically when results are available
+    if (result && !aiAnalysis && !isAiLoading) {
       const startAiAnalysis = async () => {
         setAiAnalysis('');
         setIsAiLoading(true);
         try {
-          await analyzeWithGeminiStream(geminiKey, result.keyword, result.metrics, (chunk) => {
+          await analyzeWithGeminiStream(result.keyword, result.metrics, (chunk) => {
             setAiAnalysis(prev => prev + chunk);
           });
         } finally {
@@ -92,9 +81,8 @@ const App: React.FC = () => {
       };
       startAiAnalysis();
     }
-  }, [isGeminiValid, result, aiAnalysis, isAiLoading, geminiKey]);
+  }, [result, aiAnalysis, isAiLoading]);
 
-  // Auth0 로딩 상태 처리
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center gap-6 transition-colors">
@@ -108,16 +96,16 @@ const App: React.FC = () => {
     );
   }
 
-  // 인증되지 않은 경우 랜딩 페이지 표시
   if (!isAuthenticated) {
     return <LandingPage />;
   }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Safety check for authentication before API calls
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      loginWithRedirect();
+      return;
+    }
 
     if (!youtubeKey.trim() || !isYoutubeValid) {
       setError("유효한 YouTube API Key를 먼저 설정하고 [확인] 버튼을 눌러주세요.");
@@ -147,7 +135,6 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (currentView === 'youtube_guide') return <ApiKeyGuide onBack={() => setCurrentView('dashboard')} />;
-    if (currentView === 'gemini_guide') return <GeminiKeyGuide onBack={() => setCurrentView('dashboard')} />;
 
     return (
       <>
@@ -187,17 +174,13 @@ const App: React.FC = () => {
         {result && (
           <div className="animate-fade-in-up space-y-6 md:space-y-10 pb-10">
             <Dashboard metrics={result.metrics} videos={result.videos} keyword={result.keyword} />
-            {(isGeminiValid || aiAnalysis) && (
-              <div className="grid grid-cols-1 gap-6 md:gap-8 xl:grid-cols-2">
-                <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
-                <ScriptGenerator keyword={result.keyword} geminiKey={geminiKey} />
-              </div>
-            )}
+            <div className="grid grid-cols-1 gap-6 md:gap-8 xl:grid-cols-2">
+              <AIStrategy strategy={aiAnalysis} isLoading={isAiLoading} />
+              <ScriptGenerator keyword={result.keyword} />
+            </div>
             <TagList tags={result.metrics.topTags} />
             <VideoTable 
               videos={result.videos} 
-              geminiKey={geminiKey} 
-              isGeminiValid={isGeminiValid} 
               keyword={result.keyword} 
               filters={filters} 
             />
@@ -224,13 +207,9 @@ const App: React.FC = () => {
         youtubeKey={youtubeKey} 
         setYoutubeKey={setYoutubeKey} 
         setIsYoutubeValid={setIsYoutubeValid}
-        geminiKey={geminiKey}
-        setGeminiKey={setGeminiKey} 
-        setIsGeminiValid={setIsGeminiValid}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         onShowYoutubeGuide={() => { setCurrentView('youtube_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
-        onShowGeminiGuide={() => { setCurrentView('gemini_guide'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
         onShowDashboard={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); window.scrollTo(0,0); }}
       />
       <main className="flex-1 flex flex-col min-w-0 transition-all duration-300 overflow-x-hidden">

@@ -2,10 +2,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisMetrics, YouTubeVideo } from "../types";
 
-export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
-  if (!apiKey || !apiKey.trim()) return false;
+// Gemini API Key verification using process.env.API_KEY
+export const verifyGeminiApi = async (): Promise<boolean> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    const ai = new GoogleGenAI({ apiKey: (process.env as any).API_KEY });
     await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: 'ping',
@@ -18,16 +18,14 @@ export const verifyGeminiApi = async (apiKey: string): Promise<boolean> => {
   }
 };
 
+// Streaming analysis using process.env.API_KEY
 export const analyzeWithGeminiStream = async (
-  apiKey: string,
   keyword: string,
   metrics: AnalysisMetrics,
   onChunk: (text: string) => void
 ): Promise<void> => {
-  if (!apiKey) return;
-
   try {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    const ai = new GoogleGenAI({ apiKey: (process.env as any).API_KEY });
     const prompt = `
       당신은 유튜브 알고리즘 및 수익화 전략 전문가입니다.
       데이터 분석 결과: 키워드 "${keyword}", 시장규모 ${metrics.marketSizeLevel}, 난이도 ${metrics.difficultyLevel}.
@@ -57,10 +55,10 @@ export const analyzeWithGeminiStream = async (
   }
 };
 
-export const generateVideoScript = async (apiKey: string, userPrompt: string): Promise<string> => {
-  if (!apiKey) throw new Error("API Key missing");
+// General script generation using process.env.API_KEY
+export const generateVideoScript = async (userPrompt: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    const ai = new GoogleGenAI({ apiKey: (process.env as any).API_KEY });
     const systemInstruction = `당신은 100만 유튜버 메인 작가입니다. 강력한 후킹과 리텐션 설계를 중심으로 대본을 작성하세요.`;
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -74,10 +72,10 @@ export const generateVideoScript = async (apiKey: string, userPrompt: string): P
   }
 };
 
-export const generateVideoSpecificScript = async (apiKey: string, video: YouTubeVideo): Promise<string> => {
-  if (!apiKey) throw new Error("API Key missing");
+// Specific video script generation using process.env.API_KEY
+export const generateVideoSpecificScript = async (video: YouTubeVideo): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+    const ai = new GoogleGenAI({ apiKey: (process.env as any).API_KEY });
     const prompt = `제목: ${video.snippet.title}\n설명: ${video.snippet.description}\n위 정보를 기반으로 리텐션 최적화 대본을 재구성하세요.`;
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
