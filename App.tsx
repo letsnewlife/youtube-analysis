@@ -34,8 +34,8 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
-  const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
-  const [geminiKey, setGeminiKey] = useState<string>(() => localStorage.getItem('gm_key') || ''); 
+  const [youtubeKey, setYoutubeKey] = useState<string>(() => sessionStorage.getItem('yt_key') || '');
+  const [geminiKey, setGeminiKey] = useState<string>(() => sessionStorage.getItem('gm_key') || ''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
   const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>('');
@@ -70,11 +70,11 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('yt_key', youtubeKey);
+    sessionStorage.setItem('yt_key', youtubeKey);
   }, [youtubeKey]);
 
   useEffect(() => {
-    localStorage.setItem('gm_key', geminiKey);
+    sessionStorage.setItem('gm_key', geminiKey);
   }, [geminiKey]);
 
   useEffect(() => {
