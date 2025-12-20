@@ -57,7 +57,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
