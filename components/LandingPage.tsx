@@ -1,11 +1,11 @@
-
 import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn, ChevronRight } from 'lucide-react';
+import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn } from 'lucide-react';
 
-const LandingPage: React.FC = () => {
-  const { loginWithRedirect } = useAuth0();
+interface LandingPageProps {
+  onStart: () => void;
+}
 
+const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 transition-colors overflow-hidden">
       {/* Background decoration */}
@@ -29,7 +29,7 @@ const LandingPage: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <button 
-            onClick={() => loginWithRedirect()}
+            onClick={onStart}
             className="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-950 px-10 py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-300 dark:shadow-none"
           >
             <LogIn className="w-6 h-6" /> 시작하기

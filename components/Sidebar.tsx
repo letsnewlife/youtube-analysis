@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon, LogOut, User } from 'lucide-react';
+import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { verifyYoutubeApi } from '../services/youtubeService';
+import { verifyGeminiApi } from '../services/geminiService';
 
 interface SidebarProps {
   theme: 'light' | 'dark';
@@ -10,9 +10,13 @@ interface SidebarProps {
   youtubeKey: string;
   setYoutubeKey: (key: string) => void;
   setIsYoutubeValid: (valid: boolean) => void;
+  geminiKey: string;
+  setGeminiKey: (key: string) => void;
+  setIsGeminiValid: (valid: boolean) => void;
   isOpen: boolean; // Mobile open state
   onClose: () => void; // Mobile close handler
   onShowYoutubeGuide: () => void; // Show YouTube Guide
+  onShowGeminiGuide: () => void; // Show Gemini Guide
   onShowDashboard: () => void; // Go back to dashboard
 }
 
@@ -21,10 +25,11 @@ type VerificationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 const Sidebar: React.FC<SidebarProps> = ({ 
   theme, setTheme,
   youtubeKey, setYoutubeKey, setIsYoutubeValid,
-  isOpen, onClose, onShowYoutubeGuide, onShowDashboard
+  geminiKey, setGeminiKey, setIsGeminiValid,
+  isOpen, onClose, onShowYoutubeGuide, onShowGeminiGuide, onShowDashboard
 }) => {
-  const { user, logout } = useAuth0();
   const [youtubeStatus, setYoutubeStatus] = useState<VerificationStatus>('idle');
+  const [geminiStatus, setGeminiStatus] = useState<VerificationStatus>('idle');
   
   // Desktop collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -35,12 +40,26 @@ const Sidebar: React.FC<SidebarProps> = ({
     setIsYoutubeValid(false);
   };
 
+  const handleGeminiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGeminiKey(e.target.value);
+    setGeminiStatus('idle');
+    setIsGeminiValid(false);
+  };
+
   const verifyYoutube = async () => {
     if (!youtubeKey.trim()) return;
     setYoutubeStatus('validating');
     const isValid = await verifyYoutubeApi(youtubeKey);
     setYoutubeStatus(isValid ? 'valid' : 'invalid');
     setIsYoutubeValid(isValid);
+  };
+
+  const verifyGemini = async () => {
+    if (!geminiKey.trim()) return;
+    setGeminiStatus('validating');
+    const isValid = await verifyGeminiApi(geminiKey);
+    setGeminiStatus(isValid ? 'valid' : 'invalid');
+    setIsGeminiValid(isValid);
   };
 
   const renderVerificationIcon = (status: VerificationStatus, verifyFn: () => void) => {
@@ -118,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Content Section (Scrollable) */}
-        <div className={`flex-1 overflow-y-auto ${isCollapsed ? 'overflow-x-visible' : 'overflow-x-hidden'} ${paddingClass} py-8 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 transition-colors`}>
+        <div className={`flex-1 overflow-y-auto ${isCollapsed ? 'overflow-x-visible' : 'overflow-x-hidden'} ${paddingClass} py-8 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800`}>
           
           {/* Enhanced Theme Toggle Button */}
           <div className="mb-2">
@@ -209,9 +228,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {/* Collapsible Quota Warning */}
                 <div className={`mt-3 p-2 rounded bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900 transition-all ${isCollapsed ? 'cursor-help flex justify-center' : ''}`}>
                   {isCollapsed ? (
-                    <span className="text-[10px] text-amber-700 dark:text-amber-400 font-black whitespace-nowrap transition-colors">할당량</span>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-400 font-black whitespace-nowrap">할당량</span>
                   ) : (
-                    <p className="text-xs text-amber-700 dark:text-amber-400 leading-normal font-bold whitespace-normal break-words transition-colors">
+                    <p className="text-xs text-amber-700 dark:text-amber-400 leading-normal font-bold whitespace-normal break-words">
                       할당량 초과 시 하루 뒤 시도하거나<br /> 다른 계정의 Key를 사용하세요.
                     </p>
                   )}
@@ -220,10 +239,54 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {isCollapsed && (
                     <div className="fixed left-20 ml-1 top-auto bg-slate-900 dark:bg-black text-white p-3 rounded-lg shadow-2xl border border-slate-700 dark:border-slate-800 w-52 text-[11px] font-bold leading-relaxed opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[100]">
                       할당량 초과 시 하루 뒤 시도하거나 다른 계정의 Key를 사용하세요.
-                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-8 border-transparent border-r-slate-900 dark:border-r-black transition-colors"></div>
+                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-8 border-transparent border-r-slate-900 dark:border-r-black"></div>
                     </div>
                   )}
                 </div>
+              </div>
+                                     
+
+              {/* Gemini Key Input */}
+              <div className="relative">
+                 {!isCollapsed && (
+                    <label htmlFor="gemini-key" className="block text-sm font-black text-slate-700 dark:text-slate-300 mb-2 leading-tight whitespace-normal break-words">
+                      Gemini API Key
+                    </label>
+                 )}
+
+                 {isCollapsed ? (
+                    <div className="flex justify-center">
+                        <Bot className={`w-7 h-7 ${geminiStatus === 'valid' ? 'text-purple-500' : 'text-slate-400 dark:text-slate-600'}`} />
+                    </div>
+                ) : (
+                    <>
+                        <div className="relative">
+                            <input
+                              id="gemini-key"
+                              type="password"
+                              value={geminiKey}
+                              onChange={handleGeminiChange}
+                              placeholder="Key 입력"
+                              className={`w-full pl-3 pr-12 py-2.5 border rounded text-sm focus:outline-none focus:ring-1 transition-shadow ${
+                                  geminiStatus === 'valid' ? 'border-purple-300 bg-purple-50 dark:bg-purple-900/10' : 
+                                  geminiStatus === 'invalid' ? 'border-red-300 bg-red-50 dark:bg-red-900/10' :
+                                  'border-slate-300 dark:border-slate-700 bg-transparent text-slate-800 dark:text-slate-100'
+                              }`}
+                            />
+                            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                                {renderVerificationIcon(geminiStatus, verifyGemini)}
+                            </div>
+                        </div>
+                         <div className="mt-2.5 flex justify-end">
+                             <button 
+                                onClick={onShowGeminiGuide}
+                                className="text-sm text-purple-600 dark:text-purple-400 hover:underline font-black flex items-center gap-1 leading-tight text-right transition-colors"
+                             >
+                                <BookOpen className="w-3.5 h-3.5 shrink-0" /> 발급 가이드
+                             </button>
+                        </div>
+                    </>
+                )}
               </div>
             </div>
           </div>
@@ -255,8 +318,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex gap-2.5 items-start">
                   <span className="shrink-0 text-blue-600 dark:text-blue-400 font-black text-xs mt-0.5">•</span>
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-snug break-words">
-                    2. AI 분석 기능 자동 연동<br />
-                    <span className="text-slate-500 dark:text-slate-500 font-medium block mt-0.5">(전략 및 대본 생성 준비 완료)</span>
+                    2. Gemini API Key 입력<br />
+                    <span className="text-slate-500 dark:text-slate-500 font-medium block mt-0.5">(AI 전략 및 대본 생성용)</span>
                   </p>
                 </div>
 
@@ -287,47 +350,19 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         </div>
 
-        {/* Footer Section - User Info & Logout */}
+        {/* Footer Section */}
         <div className="mt-auto border-t border-slate-100 dark:border-slate-800 shrink-0">
-          {!isCollapsed && user && (
-            <div className={`p-4 bg-slate-50 dark:bg-slate-900/50 ${contentVisibilityClass} transition-colors`}>
-                <div className="flex items-center gap-3 mb-4 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm transition-colors">
-                  {user.picture ? (
-                    <img src={user.picture} alt={user.name} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                      <User className="w-5 h-5" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-black text-slate-800 dark:text-slate-100 truncate">{user.name || user.nickname}</p>
-                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-500 truncate">{user.email}</p>
+          {!isCollapsed && (
+            <div className={`p-5 bg-slate-50/50 dark:bg-slate-900/50 ${contentVisibilityClass}`}>
+                {/* Copyright Warning */}
+                <div className="p-3 bg-white dark:bg-slate-900 border border-red-100 dark:border-red-900 rounded text-xs text-slate-700 dark:text-slate-400 leading-relaxed font-bold">
+                  <div className="flex items-center gap-1.5 text-red-500 dark:text-red-400 mb-2">
+                    <ShieldAlert className="w-5 h-5 shrink-0" /> 권한 안내
                   </div>
+                  <span className="whitespace-normal block">
+                    본 서비스의 모든 권한은<br />NewLifeBegin에게 있으며,<br />무단 배포를 금지합니다.
+                  </span>
                 </div>
-
-                <button 
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-black text-sm hover:bg-red-100 dark:hover:bg-red-900/20 transition-all active:scale-95"
-                >
-                  <LogOut className="w-4 h-4" /> 로그아웃
-                </button>
-            </div>
-          )}
-          
-          {isCollapsed && user && (
-            <div className="py-4 flex flex-col items-center gap-4 transition-colors">
-                <div className="group relative">
-                  <img src={user.picture} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" alt="user" />
-                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block z-50 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-slate-700">
-                    {user.email}
-                  </div>
-                </div>
-                <button 
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
             </div>
           )}
           
