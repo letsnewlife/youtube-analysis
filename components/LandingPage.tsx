@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn, LogOut } from 'lucide-react';
+import { Youtube, Zap, ShieldCheck, Bot, BarChart3, LogIn, LogOut, UserCheck, UserPlus, ArrowRight } from 'lucide-react';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -28,6 +28,50 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogout }) => {
         <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
           키워드만 입력하면 어떤 영상들이 있는지 상세하게 분석해드립니다.
         </p>
+
+        {/* 이용 가이드 섹션 - 개선된 디자인 */}
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 mb-12 max-w-3xl mx-auto text-left shadow-xl shadow-slate-200/50 dark:shadow-none">
+          <div className="flex items-center gap-2 mb-6 border-b border-slate-200/50 dark:border-slate-800/50 pb-4">
+            <Zap className="w-5 h-5 text-amber-500 fill-amber-500" />
+            <h2 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tighter">서비스 이용 가이드</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+            {/* 세로 구분선 (데스크톱) */}
+            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800 -translate-x-1/2" />
+            
+            {/* 기존 고객 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-slate-800 dark:text-slate-200">기존 고객</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                [시작하기] 클릭 후 기존 계정으로 로그인하시면 즉시 분석 서비스를 이용할 수 있습니다.
+              </p>
+            </div>
+
+            {/* 신규 고객 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-slate-800 dark:text-slate-200">신규 고객</h3>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                  [시작하기] → [Sign up] 클릭 후 <span className="text-red-600 dark:text-red-400 font-black decoration-red-500/30 underline underline-offset-2">구매 시 알려주신 이메일</span>로 가입해주세요.
+                </p>
+                <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">
+                  <ArrowRight className="w-3 h-3" /> 관리자 확인 후 순차 승인
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <button 
