@@ -241,16 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="mt-auto border-t border-slate-100 shrink-0">
           {!isCollapsed && (
             <div className={`p-5 bg-slate-50/50 ${contentVisibilityClass}`}>
-                {/* Contact Info */}
-                <div className="mb-5">
-                  <h3 className="text-base font-black text-slate-800 flex items-center gap-2 mb-2">
-                    <Mail className="w-4.5 h-4.5 text-blue-500" /> 문의처
-                  </h3>
-                  <a href="mailto:pjsnew4419@gmail.com" className="text-sm text-blue-600 hover:underline font-black break-all block leading-tight">
-                    pjsnew4419@gmail.com
-                  </a>
-                </div>
-                
+                                
                 {/* Copyright Warning */}
                 <div className="p-3 bg-white border border-red-100 rounded text-xs text-slate-700 leading-relaxed font-bold">
                   <div className="flex items-center gap-1.5 text-red-500 mb-2">

@@ -206,7 +206,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
         </div>
         
         <div className="flex flex-1 items-center gap-2 w-full lg:max-w-none justify-end">
-           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex-1 max-w-[200px]">
+           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex-1 max-w-[180px]">
               <span className="text-[12px] font-black text-slate-500 shrink-0">필터 :</span>
               <div className="flex items-center flex-1 min-w-0">
                 <Search className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
@@ -214,7 +214,7 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                   type="text"
                   value={filterText}
                   onChange={(e) => { setFilterText(e.target.value); setCurrentPage(1); }}
-                  placeholder="제목, 채널명 검색"
+                  placeholder="검색"
                   className="bg-transparent text-[12px] font-bold text-slate-700 focus:outline-none w-full"
                 />
               </div>
@@ -309,11 +309,15 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                           </div>
                           <div className="flex gap-2 pt-1">
                              <a href={`https://youtu.be/${video.id}`} target="_blank" className="flex-1 bg-slate-100 text-slate-700 py-2 rounded text-[14px] font-black flex items-center justify-center gap-1">
-                                <ExternalLink className="w-3.5 h-3.5" /> 원본
+                                <ExternalLink className="w-3.5 h-3.5" /> 보러가기
                              </a>
-                             <button onClick={() => handleGenerateScript(video)} disabled={generatingId === video.id || !isGeminiValid} className="flex-1 bg-purple-600 text-white py-2 rounded text-[14px] font-black flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50">
-                                {generatingId === video.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} AI분석
-                             </button>
+                             <a 
+                               href={`https://downsub.com/?url=https://youtu.be/${video.id}`} 
+                               target="_blank" 
+                               className="flex-1 bg-purple-600 text-white py-2 rounded text-[14px] font-black flex items-center justify-center gap-1 active:scale-95"
+                             >
+                                <Subtitles className="w-3.5 h-3.5" /> 스크립트
+                             </a>
                           </div>
                        </div>
                     </div>
@@ -359,8 +363,8 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       </td>
                       <td className="px-3 py-3 align-top">
                         <div className="flex flex-col justify-between h-[112px]">
-                            <a href={`https://youtu.be/${video.id}`} target="_blank" className="font-black text-slate-900 hover:text-blue-600 text-[16px] leading-snug line-clamp-4">{video.snippet.title}</a>
-                            <div className="flex items-center text-sm font-black text-black mt-1"><Calendar className="w-7 h-7 mr-1" />{formatDate(video.snippet.publishedAt)}</div>
+                            <a href={`https://youtu.be/${video.id}`} target="_blank" className="font-black text-slate-900 hover:text-blue-600 text-[15px] leading-snug line-clamp-4">{video.snippet.title}</a>
+                            <div className="flex items-center text-lg font-black text-black mt-1"><Calendar className="w-4 h-4 mr-1" />{formatDate(video.snippet.publishedAt)}</div>
                         </div>
                       </td>
                       <td className="px-3 py-3 align-top text-[12px] relative group/desc cursor-help">
@@ -385,8 +389,8 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                           </div>
                       </td>
                       <td className="px-3 py-3 align-top">
-                          <a href={`https://www.youtube.com/channel/${video.snippet.channelId}`} target="_blank" className="font-black text-slate-900 text-[14px] hover:text-red-600 hover:underline line-clamp-2 transition-colors">{video.snippet.channelTitle}</a>
-                          <div className="text-[16px] font-black text-slate-700 mt-1">{formatCount(video.channelStatistics?.subscriberCount || '0')}명</div>
+                          <a href={`https://www.youtube.com/channel/${video.snippet.channelId}`} target="_blank" className="font-black text-slate-900 text-[16px] hover:text-red-600 hover:underline line-clamp-2 transition-colors">{video.snippet.channelTitle}</a>
+                          <div className="text-[16px] font-black text-slate-900 mt-1">{formatCount(video.channelStatistics?.subscriberCount || '0')}명</div>
                       </td>
                       <td className="px-2 py-3 align-top text-center">
                          <span className="inline-flex px-2 py-1 rounded bg-slate-100 text-slate-900 font-black text-[14px] border border-slate-200">{parseDuration(video.contentDetails.duration)}</span>
@@ -394,23 +398,23 @@ const VideoTable: React.FC<VideoTableProps> = ({ videos, geminiKey, isGeminiVali
                       <td className="px-2 py-3 text-right align-top font-black text-slate-900 text-[18px]">{formatCount(video.statistics.viewCount)}</td>
                       <td className="px-2 py-3 text-right align-top space-y-1">
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-[14px] text-slate-600 font-black">좋아요</span>
+                            <span className="text-[14px] text-slate-700 font-black">좋아요</span>
                             <span className="font-black text-slate-900 text-[16px]">{formatCount(video.statistics.likeCount)}</span>
                           </div>
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-[14px] text-slate-600 font-black">댓글</span>
+                            <span className="text-[14px] text-slate-700 font-black">댓글</span>
                             <span className="font-black text-slate-900 text-[16px]">{formatCount(video.statistics.commentCount)}</span>
                           </div>
                       </td>
-                      <td className="px-2 py-3 align-top space-y-1.5 text-[13px] font-bold">
-                           <div className="flex justify-between border-b border-dashed pb-0.5"><span className="text-slate-600">VPH</span><span className="font-black text-slate-900 text-[14px]">{formatCount(video.viewsPerHour.toString())}</span></div>
-                           <div className="flex justify-between"><span className="text-slate-600">참여율</span><span className="font-black text-purple-600 text-[14px]">{engagementRate.toFixed(1)}%</span></div>
-                           <div className="flex justify-between"><span className="text-slate-600">L/V</span><span className="font-black text-blue-600 text-[14px]">{video.likeToViewRatio.toFixed(1)}%</span></div>
-                           <div className="flex justify-between"><span className="text-slate-600">V/S</span><span className="font-black text-green-600 text-[14px]">{video.viewToSubRatio.toFixed(0)}%</span></div>
+                      <td className="px-2 py-3 align-top space-y-1.5 text-[15px] font-bold">
+                           <div className="flex justify-between border-b border-dashed pb-0.5"><span className="text-slate-700">VPH</span><span className="font-black text-slate-900 text-[17px]">{formatCount(video.viewsPerHour.toString())}</span></div>
+                           <div className="flex justify-between"><span className="text-slate-700">참여율</span><span className="font-black text-purple-600 text-[17px]">{engagementRate.toFixed(1)}%</span></div>
+                           <div className="flex justify-between"><span className="text-slate-700">L/V</span><span className="font-black text-blue-600 text-[17px]">{video.likeToViewRatio.toFixed(1)}%</span></div>
+                           <div className="flex justify-between"><span className="text-slate-700">V/S</span><span className="font-black text-green-600 text-[17px]">{video.viewToSubRatio.toFixed(0)}%</span></div>
                       </td>
                       <td className="px-3 py-3 align-top text-sm">
                         <div className="h-[90px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300">
-                          {(video.comments || []).map((c, i) => <div key={i} className="bg-slate-50 p-2 rounded border border-slate-400 text-slate-700 text-[12px] font-medium mb-1 leading-snug">{c}</div>)}
+                          {(video.comments || []).map((c, i) => <div key={i} className="bg-slate-50 p-2 rounded border border-slate-100 text-slate-700 text-[12px] font-medium mb-1 leading-snug">{c}</div>)}
                         </div>
                       </td>
                       <td className="px-3 py-3 text-center align-top space-y-2">
