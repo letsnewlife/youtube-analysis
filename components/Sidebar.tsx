@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon, LogOut, Home } from 'lucide-react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { Settings, Youtube, HelpCircle, Bot, CheckCircle, Loader2, ChevronLeft, ChevronRight, X, Key, BookOpen, ListChecks, ShieldAlert, Sun, Moon, LogOut } from 'lucide-react';
 import { verifyYoutubeApi } from '../services/youtubeService';
 import { verifyGeminiApi } from '../services/geminiService';
 
@@ -19,7 +18,7 @@ interface SidebarProps {
   onShowYoutubeGuide: () => void; // Show YouTube Guide
   onShowGeminiGuide: () => void; // Show Gemini Guide
   onShowDashboard: () => void; // Go back to dashboard
-  onShowLanding: () => void; // Show landing page
+  onLogout: () => void; // Logout handler
 }
 
 type VerificationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
@@ -28,9 +27,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   theme, setTheme,
   youtubeKey, setYoutubeKey, setIsYoutubeValid,
   geminiKey, setGeminiKey, setIsGeminiValid,
-  isOpen, onClose, onShowYoutubeGuide, onShowGeminiGuide, onShowDashboard, onShowLanding
+  isOpen, onClose, onShowYoutubeGuide, onShowGeminiGuide, onShowDashboard,
+  onLogout
 }) => {
-  const { logout } = useAuth0();
   const [youtubeStatus, setYoutubeStatus] = useState<VerificationStatus>('idle');
   const [geminiStatus, setGeminiStatus] = useState<VerificationStatus>('idle');
   
@@ -142,24 +141,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Content Section (Scrollable) */}
         <div className={`flex-1 overflow-y-auto ${isCollapsed ? 'overflow-x-visible' : 'overflow-x-hidden'} ${paddingClass} py-8 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800`}>
           
-          {/* Navigation Items */}
-          <div className="space-y-2">
-            <button 
-              onClick={onShowLanding}
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-3'} py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all font-black text-sm`}
-            >
-              <Home className="w-6 h-6 shrink-0" />
-              <span className={contentVisibilityClass}>홈</span>
-            </button>
-            <button 
-              onClick={onShowDashboard}
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 px-3'} py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all font-black text-sm`}
-            >
-              <History className="w-6 h-6 shrink-0" />
-              <span className={contentVisibilityClass}>분석 대시보드</span>
-            </button>
-          </div>
-
           {/* Enhanced Theme Toggle Button */}
           <div className="mb-2">
             {!isCollapsed ? (
@@ -368,6 +349,17 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             )}
           </div>
+          
+          {/* Logout Section */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              onClick={onLogout}
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2.5 px-3'} py-3 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all font-black group`}
+            >
+               <LogOut className={`w-5 h-5 shrink-0 ${!isCollapsed ? 'group-hover:translate-x-1' : ''} transition-transform`} />
+               <span className={contentVisibilityClass}>로그아웃</span>
+            </button>
+          </div>
 
         </div>
 
@@ -384,27 +376,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     본 서비스의 모든 권한은<br />NewLifeBegin에게 있으며,<br />무단 배포를 금지합니다.
                   </span>
                 </div>
-                
-                {/* Logout Button */}
-                <button 
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                  className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 font-black text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-all active:scale-95"
-                >
-                  <LogOut className="w-4 h-4" /> 로그아웃
-                </button>
             </div>
-          )}
-          
-          {isCollapsed && (
-             <div className="flex justify-center p-4">
-                <button 
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                  className="p-2.5 rounded-xl text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all active:scale-95"
-                  title="로그아웃"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-             </div>
           )}
           
           <div className={`p-2.5 bg-slate-100 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 transition-colors ${isCollapsed ? 'flex justify-center' : ''}`}>
