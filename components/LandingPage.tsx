@@ -47,7 +47,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogout }) => {
             onClick={onLogout}
             className="text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 text-sm font-bold flex items-center gap-2 mx-auto transition-colors"
           >
-            <LogOut className="w-4 h-4" /> 다른 계정으로 로그인 (로그아웃)
+            <LogOut className="w-4 h-4" /> (로그아웃)
           </button>
         </div>
 
