@@ -37,7 +37,7 @@ const App: React.FC<AppProps> = ({ configError = false }) => {
   const [youtubeKey, setYoutubeKey] = useState<string>(() => sessionStorage.getItem('yt_key') || '');
   const [geminiKey, setGeminiKey] = useState<string>(() => sessionStorage.getItem('gm_key') || ''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
-  const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
+  const [isGeminiValid, setIsGeminiValid] = useState<boolean>(() => !!sessionStorage.getItem('gm_key'));
   const [keyword, setKeyword] = useState<string>('');
   const [filters, setFilters] = useState<SearchFilters>({
     order: 'relevance', 
