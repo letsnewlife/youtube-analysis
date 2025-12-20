@@ -17,11 +17,12 @@ import { analyzeWithGeminiStream } from './services/geminiService';
 import { AnalysisResult, SearchFilters } from './types';
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth0();
+  const { isAuthenticated, isLoading: isAuthLoading, loginWithRedirect } = useAuth0();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [currentView, setCurrentView] = useState<'dashboard' | 'youtube_guide' | 'gemini_guide'>('dashboard');
-  const [youtubeKey, setYoutubeKey] = useState<string>(() => localStorage.getItem('yt_key') || '');
-  const [geminiKey, setGeminiKey] = useState<string>(() => localStorage.getItem('gm_key') || ''); 
+  
+  const [youtubeKey, setYoutubeKey] = useState<string>('');
+  const [geminiKey, setGeminiKey] = useState<string>(''); 
   const [isYoutubeValid, setIsYoutubeValid] = useState<boolean>(false);
   const [isGeminiValid, setIsGeminiValid] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>('');
@@ -47,6 +48,13 @@ const App: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      setYoutubeKey(localStorage.getItem('yt_key') || '');
+      setGeminiKey(localStorage.getItem('gm_key') || '');
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -56,12 +64,16 @@ const App: React.FC = () => {
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('yt_key', youtubeKey);
-  }, [youtubeKey]);
+    if (isAuthenticated && youtubeKey) {
+      localStorage.setItem('yt_key', youtubeKey);
+    }
+  }, [youtubeKey, isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem('gm_key', geminiKey);
-  }, [geminiKey]);
+    if (isAuthenticated && geminiKey) {
+      localStorage.setItem('gm_key', geminiKey);
+    }
+  }, [geminiKey, isAuthenticated]);
 
   useEffect(() => {
     if (result && isGeminiValid && !aiAnalysis && !isAiLoading && geminiKey) {
@@ -80,7 +92,6 @@ const App: React.FC = () => {
     }
   }, [isGeminiValid, result, aiAnalysis, isAiLoading, geminiKey]);
 
-  // Auth0 로딩 상태 처리
   if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center gap-6 transition-colors">
@@ -94,13 +105,17 @@ const App: React.FC = () => {
     );
   }
 
-  // 인증되지 않은 경우 랜딩 페이지 표시
   if (!isAuthenticated) {
     return <LandingPage />;
   }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      loginWithRedirect();
+      return;
+    }
+
     if (!youtubeKey.trim() || !isYoutubeValid) {
       setError("유효한 YouTube API Key를 먼저 설정하고 [확인] 버튼을 눌러주세요.");
       return;
