@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { AlertCircle } from "lucide-react";
 
 export function Auth0ApprovalPopup() {
-  const { error, isLoading, logout } = useAuth0();
+  const { error, isLoading } = useAuth0();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -22,11 +22,9 @@ export function Auth0ApprovalPopup() {
   }, [error, isLoading]);
 
   const handleConfirm = () => {
+    // 서버 측 logout()을 호출하지 않고 팝업만 닫습니다.
+    // 이렇게 하면 Auth0 세션이 유지되어 승인 후 별도 로그인 없이 접근이 가능해집니다.
     setShowModal(false);
-    // 승인 거부 상태에서 세션을 초기화하기 위해 로그아웃 실행
-    logout({
-      logoutParams: { returnTo: window.location.origin },
-    });
   };
 
   if (!showModal) return null;
