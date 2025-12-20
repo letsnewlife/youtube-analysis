@@ -209,7 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics, videos, keyword }) => {
                   formula="좋아요 수 / 전체 조회수 × 100"
                   desc="콘텐츠의 순수 만족도를 나타냅니다. 높을수록 시청자 만족도가 높은 양질의 콘텐츠입니다."
                 />
-                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">좋아요/조회수 비율(L/V)((spann
+                <span className="text-slate-600 dark:text-slate-400 text-base font-bold">좋아요/조회수 비율(L/V)</span>
                 <span className="font-bold text-blue-600 dark:text-blue-400 text-xl">{metrics.avgLikeToViewRatio.toFixed(1)}%</span>
             </div>
 
